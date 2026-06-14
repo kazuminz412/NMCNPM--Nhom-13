@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Hóa Đơn – Cư Dân</title>
+<title>Nhà Của Tôi – Cư Dân</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -14,58 +14,57 @@
   --border:#D5DBDB;--radius:10px;
 }
 body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* HEADER */
 .hdr{background:var(--primary);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between;position:fixed;top:0;left:0;right:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2)}
 .hdr-logo{display:flex;align-items:center;gap:10px}
 .hdr-icon{width:34px;height:34px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px}
 .hdr-title{font-size:13px;font-weight:700;color:#fff}
 .hdr-sub{font-size:10px;color:rgba(255,255,255,.5)}
 .hdr-right{display:flex;align-items:center;gap:8px}
+.user-info{text-align:right}
 .user-info .name{font-size:12.5px;font-weight:600;color:#fff}
 .user-info .room{font-size:10px;color:rgba(255,255,255,.6)}
 .avatar{width:32px;height:32px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff}
 .btn-logout{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;padding:5px 10px;border-radius:6px;font-size:11.5px;cursor:pointer;font-family:inherit}
-.nav-tabs{background:#fff;border-bottom:1px solid var(--border);padding:0 20px;display:flex;margin-top:56px;position:sticky;top:56px;z-index:90}
+.btn-logout:hover{background:rgba(255,255,255,.2)}
+
+/* NAV TABS */
+.nav-tabs{background:#fff;border-bottom:1px solid var(--border);padding:0 20px;display:flex;gap:0;margin-top:56px;position:sticky;top:56px;z-index:90}
 .tab{padding:14px 20px;font-size:13.5px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;transition:all .15s;text-decoration:none;display:flex;align-items:center;gap:6px}
 .tab:hover{color:var(--primary)}
 .tab.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:600}
+
+/* CONTENT */
 .content{padding:24px 20px;max-width:900px;margin:0 auto}
+.section-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px}
 .card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:18px}
 .card-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
 .card-ttl{font-size:13.5px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:7px}
+
+/* HO INFO */
+.ho-info{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.info-item{padding:12px 18px;border-bottom:1px solid #F0F4F8;display:flex;align-items:center;gap:10px}
+.info-item:nth-child(odd){border-right:1px solid #F0F4F8}
+.info-label{font-size:11.5px;color:var(--muted);margin-bottom:2px}
+.info-value{font-size:13.5px;font-weight:600;color:var(--text)}
+
+/* TABLE */
 table{width:100%;border-collapse:collapse;font-size:13px}
 thead th{background:#F5F8FA;padding:9px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-bottom:1px solid var(--border)}
 tbody td{padding:11px 14px;border-bottom:1px solid #F0F4F8;vertical-align:middle}
 tbody tr:last-child td{border-bottom:none}
-tbody tr:hover td{background:#F8FAFC}
+
+/* BADGE */
 .badge{display:inline-block;padding:3px 8px;border-radius:12px;font-size:11px;font-weight:600}
 .badge-success{background:var(--success-bg);color:var(--success)}
-.badge-danger{background:var(--danger-bg);color:var(--danger)}
-.btn-xem{background:none;border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;color:var(--text);font-family:inherit;transition:all .12s}
-.btn-xem:hover{border-color:var(--primary);color:var(--primary)}
+.badge-primary{background:var(--primary-pale);color:var(--primary)}
+.badge-warn{background:#FEF9E7;color:#B7770D}
+.badge-gray{background:#F2F3F4;color:#717D7E}
 
-/* Modal */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center}
-.modal-overlay.show{display:flex}
-.modal{background:#fff;border-radius:12px;width:520px;max-width:95vw;box-shadow:0 8px 32px rgba(0,0,0,.18)}
-.modal-hdr{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.modal-ttl{font-size:15px;font-weight:700;color:var(--text)}
-.modal-close{background:none;border:none;font-size:18px;cursor:pointer;color:var(--muted)}
-.modal-body{padding:20px}
-.modal-foot{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
-.hd-header-box{background:linear-gradient(135deg,#1B4F72,#2E86C1);border-radius:8px;padding:16px;color:#fff;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
-.hd-header-box h3{font-size:14px;font-weight:700;margin-bottom:3px}
-.hd-header-box p{font-size:11.5px;opacity:.75}
-.hd-total-amt{font-size:22px;font-weight:700}
-.hd-total-lbl{font-size:11px;opacity:.7;text-align:right}
-.btn-primary{padding:8px 16px;background:var(--primary);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer}
-.btn-outline{padding:8px 16px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:7px;font-size:13px;font-family:inherit;cursor:pointer}
+/* FOOTER */
 footer{background:#fff;border-top:1px solid var(--border);padding:12px 20px;text-align:center;font-size:11.5px;color:var(--muted);margin-top:20px}
 footer b{color:var(--primary)}
-
-/* Filter */
-.filter-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
-.form-control{height:36px;border:1px solid var(--border);border-radius:6px;padding:0 10px;font-size:12.5px;font-family:inherit;outline:none}
-.form-control:focus{border-color:var(--primary)}
 </style>
 </head>
 <body>
@@ -77,168 +76,142 @@ footer b{color:var(--primary)}
   </div>
   <div class="hdr-right">
     <div class="user-info">
-      <div class="name" id="hdr-name">—</div>
-      <div class="room" id="hdr-room">—</div>
+      <div class="name" id="hdr-name">Nguyễn Văn An</div>
+      <div class="room" id="hdr-room">Căn hộ A1-204</div>
     </div>
     <div class="avatar" id="hdr-avatar">A</div>
-    <button class="btn-logout" onclick="logout()">🚪 Đăng xuất</button>
+    <button class="btn-logout" onclick="AUTH.logout()">🚪 Đăng xuất</button>
   </div>
 </header>
 
 <nav class="nav-tabs">
-  <a href="cu-dan-nha-toi.html" class="tab">🏠 Nhà của tôi</a>
-  <a href="cu-dan-hoa-don.html" class="tab active">🧾 Hóa đơn & Thanh toán</a>
+  <a href="cu-dan-nha-toi.html" class="tab active">🏠 Nhà của tôi</a>
+  <a href="cu-dan-hoa-don.html" class="tab">🧾 Hóa đơn & Thanh toán</a>
 </nav>
 
 <div class="content">
-  <div class="filter-row">
-    <input type="month" id="filterThang" class="form-control" onchange="loadData()"/>
-    <select id="filterTT" class="form-control" style="width:180px" onchange="loadData()">
-      <option value="">Tất cả trạng thái</option>
-      <option value="da_thanh_toan">Đã thanh toán</option>
-      <option value="chua_thanh_toan">Chưa thanh toán</option>
-    </select>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-ttl">🏠 Thông tin hộ gia đình</div></div>
+    <div class="ho-info" id="hoInfo">
+      <div class="info-item"><div><div class="info-label">Chủ hộ</div><div class="info-value" id="i-chuHo">—</div></div></div>
+      <div class="info-item"><div><div class="info-label">Căn hộ</div><div class="info-value" id="i-canHo">—</div></div></div>
+      <div class="info-item"><div><div class="info-label">Số nhân khẩu</div><div class="info-value" id="i-soNK">—</div></div></div>
+      <div class="info-item"><div><div class="info-label">Diện tích</div><div class="info-value" id="i-dienTich">—</div></div></div>
+      <div class="info-item"><div><div class="info-label">Số điện thoại</div><div class="info-value" id="i-sdt">—</div></div></div>
+      <div class="info-item"><div><div class="info-label">Trạng thái phí</div><div class="info-value" id="i-trangThai">—</div></div></div>
+    </div>
   </div>
 
   <div class="card">
-    <div class="card-hdr">
-      <div class="card-ttl">🧾 Danh sách hóa đơn</div>
-      <span id="summaryText" style="font-size:12px;color:var(--muted)"></span>
-    </div>
+    <div class="card-hdr"><div class="card-ttl">👥 Người đang ở (<span id="soNKCount">0</span>)</div></div>
     <table>
-      <thead><tr><th>#</th><th>Tháng</th><th>Tổng tiền</th><th>Trạng thái</th><th>Ngày TT</th><th>Chi tiết</th></tr></thead>
-      <tbody id="tableBody">
+      <thead><tr><th>#</th><th>Họ và tên</th><th>Ngày sinh</th><th>Giới tính</th><th>Quan hệ</th><th>Trạng thái</th></tr></thead>
+      <tbody id="nhanKhauBody">
         <tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted)">Đang tải...</td></tr>
       </tbody>
     </table>
   </div>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-ttl">🚗 Xe cộ đang đăng ký (<span id="soXeCount">0</span>)</div></div>
+    <table>
+      <thead><tr><th>#</th><th>Biển số</th><th>Loại xe</th><th>Hãng / Màu</th><th>Phí/tháng</th></tr></thead>
+      <tbody id="xeBody">
+        <tr><td colspan="5" style="text-align:center;padding:20px;color:var(--muted)">Đang tải...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
 </div>
 
 <footer><p>© 2026 <b>BlueMoon</b> – Cổng thông tin cư dân – Nhóm 13</p></footer>
 
-<!-- MODAL CHI TIẾT -->
-<div class="modal-overlay" id="modalChiTiet">
-  <div class="modal">
-    <div class="modal-hdr">
-      <span class="modal-ttl">Chi tiết hóa đơn</span>
-      <button class="modal-close" onclick="closeModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="hd-header-box">
-        <div>
-          <h3 id="dt-thang">—</h3>
-          <p id="dt-canHo">—</p>
-        </div>
-        <div>
-          <div class="hd-total-lbl">Tổng tiền</div>
-          <div class="hd-total-amt" id="dt-tong">—</div>
-          <div id="dt-tt" style="text-align:right;font-size:11px;margin-top:4px"></div>
-        </div>
-      </div>
-      <p style="font-size:13px;font-weight:600;margin-bottom:8px">📋 Chi tiết khoản phí:</p>
-      <table style="font-size:12.5px">
-        <thead><tr><th>Khoản phí</th><th>Đơn giá</th><th>Số lượng</th><th>Thành tiền</th></tr></thead>
-        <tbody id="chiTietBody"></tbody>
-      </table>
-      <div style="text-align:right;padding:10px 0;font-weight:700;color:var(--primary);font-size:14px">
-        Tổng: <span id="dt-tongCong">—</span>
-      </div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn-outline" onclick="closeModal()">Đóng</button>
-    </div>
-  </div>
-</div>
-
+<script src="auth.js"></script>
 <script>
+// ĐÃ SỬA: Gọi hàm bảo vệ chuẩn của auth.js
+AUTH.init('nhatoi');
+
 const API = 'http://localhost:8080/api';
-const token = localStorage.getItem('token');
-const user  = JSON.parse(localStorage.getItem('user') || '{}');
-if (!token) window.location.href = 'login.html';
+const token = AUTH.token;
+const user  = AUTH.user;
 
-document.getElementById('hdr-name').textContent   = user.hoTen || '—';
-document.getElementById('hdr-avatar').textContent  = (user.hoTen||'A')[0].toUpperCase();
-document.getElementById('hdr-room').textContent    = `Căn hộ ${user.canHo || 'A1-204'}`;
+// Đổ thông tin Header
+document.getElementById('hdr-name').textContent   = user.hoTen || user.username || '—';
+document.getElementById('hdr-avatar').textContent = (user.hoTen || user.username || 'U')[0].toUpperCase();
 
-// Set tháng hiện tại
-const now = new Date();
-document.getElementById('filterThang').value =
-  `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-
-const MOCK_CHI_TIET = [
-  {tenPhi:'Phí dịch vụ',    donGia:7000,   soLuong:65, donVi:'m²'},
-  {tenPhi:'Phí gửi xe máy', donGia:100000, soLuong:1,  donVi:'xe'},
-  {tenPhi:'Phí gửi ô tô',   donGia:1200000,soLuong:1,  donVi:'xe'},
+const MOCK_HO = { chuHo:'Nguyễn Văn An', canHo:'A1-204', soNK:4, dienTich:'65 m²', sdt:'0912 345 678', trangThai:'da_dong' };
+const MOCK_NK = [
+  {hoTen:'Nguyễn Văn An', ngaySinh:'1985-03-15', gioiTinh:'nam', quanHe:'chu_ho',  trangThai:'thuong_tru'},
+  {hoTen:'Lê Thị Hoa',    ngaySinh:'1988-07-22', gioiTinh:'nu',  quanHe:'vo_chong',trangThai:'thuong_tru'}
 ];
-
-const MOCK_DATA = [
-  {id:'1',thang:'2026-06',tongTien:1755000,trangThai:'chua_thanh_toan',ngayTT:null,          chiTiet:MOCK_CHI_TIET},
-  {id:'2',thang:'2026-05',tongTien:1755000,trangThai:'da_thanh_toan',  ngayTT:'2026-05-10',  chiTiet:MOCK_CHI_TIET},
-  {id:'3',thang:'2026-04',tongTien:1655000,trangThai:'da_thanh_toan',  ngayTT:'2026-04-08',  chiTiet:MOCK_CHI_TIET},
-  {id:'4',thang:'2026-03',tongTien:1655000,trangThai:'da_thanh_toan',  ngayTT:'2026-03-12',  chiTiet:MOCK_CHI_TIET},
+const MOCK_XE = [
+  {bienSo:'30A-12345', loaiXe:'xe_may', hangXe:'Honda', mauXe:'Đỏ',   phi:100000}
 ];
 
 async function loadData() {
-  const hoDanId = user.hoDanId || '1';
-  const thang   = document.getElementById('filterThang').value;
-  let data = MOCK_DATA;
+  let ho = MOCK_HO, nk = MOCK_NK, xe = MOCK_XE;
+  
   try {
-    const res = await fetch(`${API}/hoa-don?hoDanId=${hoDanId}&thang=${thang}`, {
-      headers:{'Authorization':`Bearer ${token}`}
-    });
-    if (res.ok) data = await res.json();
-  } catch {}
+    const [rHo, rNk, rXe] = await Promise.all([
+      fetch(`${API}/ho-dan/me`,       { headers: {'Authorization': `Bearer ${token}`} }),
+      fetch(`${API}/nhan-khau/me`,    { headers: {'Authorization': `Bearer ${token}`} }),
+      fetch(`${API}/phuong-tien/me`,  { headers: {'Authorization': `Bearer ${token}`} }),
+    ]);
+    if (rHo.ok) ho = await rHo.json();
+    if (rNk.ok) nk = await rNk.json();
+    if (rXe.ok) xe = await rXe.json();
+  } catch (error) {
+    console.error("Lỗi tải dữ liệu, đang dùng Mock Data", error);
+  }
 
-  const tt = document.getElementById('filterTT').value;
-  const filtered = tt ? data.filter(d => d.trangThai === tt) : data;
+  // Render Thông tin hộ
+  document.getElementById('i-chuHo').textContent    = ho.chuHo || ho.tenChuHo || '—';
+  document.getElementById('i-canHo').textContent    = ho.canHo || '—';
+  document.getElementById('i-soNK').textContent     = `${ho.soNK || ho.soNhanKhau || '—'} người`;
+  document.getElementById('i-dienTich').textContent = ho.dienTich || '—';
+  document.getElementById('i-sdt').textContent      = ho.sdt || '—';
+  document.getElementById('hdr-room').textContent   = `Căn hộ ${ho.canHo || '—'}`;
+  
+  const ttMap = {da_dong:'✅ Đã đóng phí', chua_dong:'❌ Chưa đóng phí', mot_phan:'⚠️ Đóng một phần'};
+  document.getElementById('i-trangThai').innerHTML  = ttMap[ho.trangThai] || '—';
 
-  const chuaTT = filtered.filter(d => d.trangThai === 'chua_thanh_toan').length;
-  document.getElementById('summaryText').textContent =
-    chuaTT > 0 ? `⚠️ ${chuaTT} hóa đơn chưa thanh toán` : '✅ Tất cả đã thanh toán';
-
-  document.getElementById('tableBody').innerHTML = filtered.map((hd, i) => `
+  // Render Nhân khẩu 
+  const safeNk = nk || [];
+  document.getElementById('soNKCount').textContent = safeNk.length;
+  const quanHeLabel = {chu_ho:'Chủ hộ',vo_chong:'Vợ/Chồng',con:'Con',cha_me:'Cha/Mẹ',khac:'Khác'};
+  const ttNKLabel   = {thuong_tru:'Thường trú',tam_tru:'Tạm trú',tam_vang:'Tạm vắng',chuyen_di:'Đã chuyển đi'};
+  const ttNKCls     = {thuong_tru:'badge-success',tam_tru:'badge-primary',tam_vang:'badge-warn',chuyen_di:'badge-gray'};
+  
+  document.getElementById('nhanKhauBody').innerHTML = safeNk.length === 0 
+    ? '<tr><td colspan="6" style="text-align:center;color:var(--muted)">Không có dữ liệu</td></tr>'
+    : safeNk.map((n,i) => `
     <tr>
       <td style="color:var(--muted)">${i+1}</td>
-      <td><b>Tháng ${hd.thang.split('-').reverse().join('/')}</b></td>
-      <td><b style="color:var(--primary)">${hd.tongTien.toLocaleString('vi-VN')}đ</b></td>
-      <td><span class="badge ${hd.trangThai==='da_thanh_toan'?'badge-success':'badge-danger'}">
-        ${hd.trangThai==='da_thanh_toan'?'✅ Đã thanh toán':'❌ Chưa thanh toán'}
-      </span></td>
-      <td>${hd.ngayTT || '—'}</td>
-      <td><button class="btn-xem" onclick='xemChiTiet(${JSON.stringify(hd).replace(/"/g,"&quot;")})'>🔍 Xem</button></td>
+      <td><b>${n.hoTen}</b></td>
+      <td>${n.ngaySinh}</td>
+      <td>${n.gioiTinh==='nam'?'👨 Nam':'👩 Nữ'}</td>
+      <td>${quanHeLabel[n.quanHe]||n.quanHe}</td>
+      <td><span class="badge ${ttNKCls[n.trangThai]||'badge-primary'}">${ttNKLabel[n.trangThai]||n.trangThai}</span></td>
     </tr>
   `).join('');
-}
 
-function xemChiTiet(hd) {
-  document.getElementById('modalChiTiet').classList.add('show');
-  document.getElementById('dt-thang').textContent  = `Hóa đơn tháng ${hd.thang.split('-').reverse().join('/')}`;
-  document.getElementById('dt-canHo').textContent  = user.hoTen || '—';
-  document.getElementById('dt-tong').textContent   = hd.tongTien.toLocaleString('vi-VN') + 'đ';
-  document.getElementById('dt-tongCong').textContent = hd.tongTien.toLocaleString('vi-VN') + 'đ';
-  document.getElementById('dt-tt').innerHTML =
-    hd.trangThai === 'da_thanh_toan' ? '✅ Đã thanh toán' : '❌ Chưa thanh toán';
-
-  const items = hd.chiTiet || [];
-  document.getElementById('chiTietBody').innerHTML = items.map(ct => `
+  // Render Xe cộ
+  const safeXe = xe || [];
+  const loaiXeLabel = {xe_may:'🏍️ Xe máy',o_to:'🚗 Ô tô',xe_dap_dien:'⚡ Xe đạp điện'};
+  document.getElementById('soXeCount').textContent = safeXe.length;
+  
+  document.getElementById('xeBody').innerHTML = safeXe.length === 0
+    ? '<tr><td colspan="5" style="text-align:center;color:var(--muted)">Chưa đăng ký phương tiện nào</td></tr>'
+    : safeXe.map((x,i) => `
     <tr>
-      <td>${ct.tenPhi}</td>
-      <td>${ct.donGia.toLocaleString('vi-VN')}đ/${ct.donVi}</td>
-      <td>${ct.soLuong} ${ct.donVi}</td>
-      <td><b>${(ct.donGia*ct.soLuong).toLocaleString('vi-VN')}đ</b></td>
+      <td style="color:var(--muted)">${i+1}</td>
+      <td><b style="letter-spacing:1px">${x.bienSo}</b></td>
+      <td>${loaiXeLabel[x.loaiXe]||x.loaiXe}</td>
+      <td>${x.hangXe||'—'} ${x.mauXe?'/ '+x.mauXe:''}</td>
+      <td><b style="color:var(--primary)">${(x.phi||0).toLocaleString('vi-VN')}đ/tháng</b></td>
     </tr>
   `).join('');
-}
-
-function closeModal() { document.getElementById('modalChiTiet').classList.remove('show'); }
-
-function logout() {
-  if (confirm('Đăng xuất?')) {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('role');
-    window.location.href = 'login.html';
-  }
 }
 
 loadData();
