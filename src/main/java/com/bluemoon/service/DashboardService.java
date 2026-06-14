@@ -26,21 +26,25 @@ public class DashboardService {
     private final HoaDonRepository hoaDonRepo;
     private final NhatKyHoatDongRepository nhatKyRepo;
 
-    // 1. Logic lấy Thống Kê Tổng
+    // 1. Logic lấy Thống Kê Tổng (Đã sửa lỗi trùng biến)
     public StatsResponse getDashboardStats() {
         String thangHienTai = YearMonth.now().format(DateTimeFormatter.ofPattern("yyyy-MM"));
 
         long tongHoDan = hoDanRepo.count();
-        long tongNhanKhau = nhanKhauRepo.count(); // Giả sử đã có bảng NhanKhau
+        long tongNhanKhau = nhanKhauRepo.count();
         long tongXe = phuongTienRepo.count();
 
-        // Chú ý: Backend cần tự viết thêm 2 hàm @Query trong HoaDonRepository:
-        // - sumDoanhThuByThang(String thang) -> Tổng tiền những hóa đơn "da_thanh_toan"
-        // - countHoaDonDaThuByThang(String thang) / countHoaDonByThang(String thang)
-        
-        // Mock logic (thay bằng hàm gọi Repository thực tế):
-        long thuThang = 98500000L; // hoaDonRepo.sumDoanhThuByThang(thangHienTai)
-        double tyLe = 76.0;        // (hoaDonRepo.countHoaDonDaThuByThang(thangHienTai) / tongHoHoaDon) * 100
+        // Lấy Tổng thu thực tế từ Database
+        long thuThang = hoaDonRepo.sumDoanhThuByThang(thangHienTai);
+
+        // Tính tỷ lệ % hoàn thành
+        long soDaThu = hoaDonRepo.countHoaDonDaThuByThang(thangHienTai);
+        long tongSoHoaDon = hoaDonRepo.countTotalHoaDonByThang(thangHienTai);
+
+        double tyLe = 0.0;
+        if (tongSoHoaDon > 0) {
+            tyLe = Math.round((soDaThu * 100.0) / tongSoHoaDon); 
+        }
 
         return StatsResponse.builder()
                 .hodan(tongHoDan)
@@ -51,25 +55,35 @@ public class DashboardService {
                 .build();
     }
 
-    // 2. Logic tính toán Biểu Đồ
+    // 2. Logic tính toán Biểu Đồ (ĐÃ NÂNG CẤP LÊN SỐ THẬT 100%)
     public ChartResponse getDashboardCharts() {
         List<String> labels = new ArrayList<>();
         List<Double> doanhThu = new ArrayList<>();
         
-        // Vòng lặp lấy 6 tháng gần nhất
+        // Vòng lặp lấy 6 tháng gần nhất để vẽ biểu đồ Cột
         for (int i = 5; i >= 0; i--) {
             YearMonth ym = YearMonth.now().minusMonths(i);
+            String thangStr = ym.format(DateTimeFormatter.ofPattern("yyyy-MM")); // Format "yyyy-MM" để query
             labels.add("T" + ym.getMonthValue());
             
-            // Ở dự án thực tế: doanhThu.add(hoaDonRepo.sumDoanhThuByThang(ym.toString()) / 1_000_000.0);
-            // Fix cứng số liệu tạm thời để giao diện chạy:
-            doanhThu.add(Math.round(Math.random() * 20 + 70) * 1.0); 
+            // Query số thật và chia cho 1 triệu (Vì Frontend đang hiển thị đơn vị "triệu đồng")
+            Long tongThuThang = hoaDonRepo.sumDoanhThuByThang(thangStr);
+            doanhThu.add(tongThuThang / 1_000_000.0); 
+        }
+
+        // Tính số liệu cho biểu đồ Tròn (Tháng hiện tại)
+        String thangHienTai = YearMonth.now().format(DateTimeFormatter.ofPattern("yyyy-MM"));
+        long soDaThu = hoaDonRepo.countHoaDonDaThuByThang(thangHienTai);
+        long tongSoHoaDon = hoaDonRepo.countTotalHoaDonByThang(thangHienTai);
+        double tyLe = 0.0;
+        if (tongSoHoaDon > 0) {
+            tyLe = Math.round((soDaThu * 100.0) / tongSoHoaDon);
         }
 
         return ChartResponse.builder()
                 .labels(labels)
                 .doanhThu(doanhThu)
-                .tyLeDaThu(76.0) // Lấy từ getDashboardStats()
+                .tyLeDaThu(tyLe) 
                 .build();
     }
 
