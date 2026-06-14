@@ -1,22 +1,9 @@
-/**
- * auth.js — Nhúng vào tất cả các trang HTML
- * Chức năng:
- *  1. Kiểm tra token, chưa login thì đá về login.html
- *  2. Render menu động theo Role (ADMIN / KE_TOAN / CU_DAN)
- *  3. Hiển thị tên user trên header
- *
- * Cách dùng: thêm vào cuối <body> mỗi trang:
- *   <script src="auth.js"></script>
- */
 
-// TODO: localStorage cho tiện demo. Lên Production cần dùng httpOnly Cookie để chống XSS.
 const AUTH = (() => {
   const token = localStorage.getItem('token');
   const userRaw = localStorage.getItem('user');
   const user = userRaw ? JSON.parse(userRaw) : null;
   const role = user?.role || localStorage.getItem('role') || 'ADMIN';
-
-  // ===== 1. BẢO VỆ ROUTE =====
   function protect() {
     if (!token) {
       window.location.href = 'login.html';
@@ -25,7 +12,6 @@ const AUTH = (() => {
     return true;
   }
 
-  // ===== 2. MENU THEO ROLE =====
   const MENU_CONFIG = {
     ADMIN: {
       sections: [
@@ -130,8 +116,6 @@ const AUTH = (() => {
     html += `<div class="sidebar-foot"><button class="logout" onclick="AUTH.logout()">🚪 Đăng xuất</button></div>`;
     aside.innerHTML = html;
   }
-
-  // ===== 3. HIỂN THỊ USER TRÊN HEADER =====
   function renderUser() {
     const nameEl    = document.querySelector('.uname');
     const roleEl    = document.querySelector('.urole');
@@ -143,8 +127,6 @@ const AUTH = (() => {
     if (roleEl)   roleEl.textContent   = roleLabel[role] || role;
     if (avatarEl) avatarEl.textContent = (user.hoTen || user.username || 'A')[0].toUpperCase();
   }
-
-  // ===== 4. LOGOUT =====
   function logout() {
     if (confirm('Bạn có chắc muốn đăng xuất?')) {
       localStorage.removeItem('token');
@@ -154,7 +136,6 @@ const AUTH = (() => {
     }
   }
 
-  // ===== INIT =====
   function init(activeKey = '') {
     if (!protect()) return;
     renderMenu(activeKey);
