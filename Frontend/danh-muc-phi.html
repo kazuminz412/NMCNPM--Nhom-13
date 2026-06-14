@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Danh Mục Khoản Phí – Quản Lý Hộ Dân</title>
+<link rel="stylesheet" href="layout.css"/>
+<style>
+.fee-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px}
+.fee-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:18px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:box-shadow .15s}
+.fee-card:hover{box-shadow:0 4px 16px rgba(27,79,114,.12);border-color:var(--primary)}
+.fee-ico{width:46px;height:46px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.fee-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
+.fee-price{font-size:15px;font-weight:700;color:var(--primary)}
+.fee-unit{font-size:11px;color:var(--muted);margin-top:1px}
+.form-error.show-error{display:block}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="hdr-logo"><div class="hdr-icon">🏢</div><div><div class="hdr-title">Quản Lý Hộ Dân</div><div class="hdr-sub">BlueMoon – v1.0</div></div></div>
+  <div class="hdr-mid">
+    <div class="search-wrap"><span class="search-icon">🔍</span><input placeholder="Tìm kiếm..."/></div>
+    <nav class="breadcrumb">🏠 / <b>Danh mục khoản phí</b></nav>
+  </div>
+  <div class="hdr-right">
+    <button class="hbtn">🔔</button><button class="hbtn">⚙️</button>
+    <div class="upill"><div class="uavatar">AD</div><div><div class="uname">Admin</div><div class="urole">Quản trị viên</div></div></div>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<aside>
+  <div class="nav-sec"><span class="nav-lbl">Tổng quan</span>
+    <a href="dashboard.html" class="nav-a">📊 Bảng điều khiển </a>
+  </div>
+  <div class="ndiv"></div>
+  <div class="nav-sec"><span class="nav-lbl">Quản lý dân cư</span>
+    <a href="ho-dan.html" class="nav-a">🏠 Hộ dân <span class="nbadge">248</span></a>
+    <a href="nhan-khau.html" class="nav-a">👥 Nhân khẩu </a>
+    <a href="phuong-tien.html" class="nav-a">🚗 Phương tiện </a>
+  </div>
+  <div class="ndiv"></div>
+  <div class="nav-sec"><span class="nav-lbl">Tài chính</span>
+    <a href="danh-muc-phi.html" class="nav-a active">💲 Danh mục khoản phí </a>
+    <a href="hoa-don.html" class="nav-a">🧾 Hóa đơn </a>
+    <a href="thanh-toan.html" class="nav-a">💳 Thanh toán </a>
+    <a href="khoan-thu.html" class="nav-a">📋 Khoản thu </a>
+    <a href="thu-phi.html" class="nav-a">💰 Thu phí <span class="nbadge red">5</span></a>
+    <a href="lich-su.html" class="nav-a">📜 Lịch sử giao dịch </a>
+  </div>
+  <div class="ndiv"></div>
+  <div class="nav-sec"><span class="nav-lbl">Báo cáo</span>
+    <a href="thong-ke.html" class="nav-a">📈 Thống kê </a>
+  </div>
+  <div class="sidebar-foot"><button class="logout" onclick="handleLogout()">🚪 Đăng xuất</button></div>
+</aside>
+
+<!-- MAIN -->
+<main>
+  <div class="page-head"><h1>Danh Mục Khoản Phí</h1></div>
+
+  <!-- Cards tóm tắt -->
+  <div class="fee-grid" id="feeCards"></div>
+
+  <!-- Bảng chi tiết -->
+  <div class="card">
+    <div class="card-hdr">
+      <div class="card-ttl">💲 Danh sách đơn giá phí</div>
+      <button class="btn btn-primary" onclick="openModal('add')">＋ Thêm loại phí</button>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Tên khoản phí</th><th>Đơn giá</th><th>Đơn vị tính</th><th>Loại</th><th>Trạng thái</th><th>Thao tác</th></tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted)">Đang tải dữ liệu...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2026 <b>Hệ Thống Quản Lý Hộ Dân & Thu Phí</b> — Đồ án Công nghệ Phần mềm – Nhóm 13</p>
+  <div class="flinks"><span>Hướng dẫn</span><span>Hỗ trợ</span></div>
+</footer>
+
+<!-- MODAL THÊM / SỬA PHÍ -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-hdr">
+      <span class="modal-ttl" id="modalTitle">Thêm loại phí mới</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="phiForm" novalidate>
+        <input type="hidden" id="phiId"/>
+        <div class="form-group">
+          <label class="form-label">Tên khoản phí <span class="required">*</span></label>
+          <input type="text" id="tenPhi" class="form-control" placeholder="VD: Phí dịch vụ"/>
+          <div class="form-error" id="err-tenPhi">Vui lòng nhập tên khoản phí</div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Đơn giá (VNĐ) <span class="required">*</span></label>
+            <input type="text" id="donGia" class="form-control" placeholder="7000"
+              oninput="this.value=this.value.replace(/[^0-9]/g,''); formatDonGia()"/>
+            <div class="form-error" id="err-donGia">Đơn giá phải lớn hơn 0</div>
+            <small id="donGiaPreview" style="color:var(--primary);font-size:11px;margin-top:3px;display:block"></small>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Đơn vị tính <span class="required">*</span></label>
+            <select id="donViTinh" class="form-control">
+              <option value="m2">đồng/m²</option>
+              <option value="xe">đồng/xe/tháng</option>
+              <option value="ho">đồng/hộ/tháng</option>
+              <option value="nguoi">đồng/người/tháng</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Loại phí</label>
+            <select id="loaiPhi" class="form-control">
+              <option value="bat_buoc">Bắt buộc</option>
+              <option value="tu_nguyen">Tự nguyện</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Trạng thái</label>
+            <select id="trangThai" class="form-control">
+              <option value="dang_ap_dung">Đang áp dụng</option>
+              <option value="tam_ngung">Tạm ngưng</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mô tả</label>
+          <textarea id="moTa" class="form-control" placeholder="Mô tả thêm về khoản phí..."></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal()">Hủy</button>
+      <button class="btn btn-primary" onclick="submitForm()">💾 Lưu</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'http://localhost:8080/api';
+const token = localStorage.getItem('token');
+if (!token) window.location.href = 'login.html';
+
+let allData = [];
+
+// ===== LOAD DATA =====
+async function loadData() {
+  document.getElementById('tableBody').innerHTML =
+    '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted)">Đang tải dữ liệu...</td></tr>';
+  try {
+    const res = await fetch(`${API}/danh-muc-phi`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error('API Error');
+    allData = await res.json();
+  } catch {
+    allData = MOCK_DATA;
+  }
+  renderCards(allData);
+  renderTable(allData);
+}
+
+// ===== RENDER CARDS =====
+function renderCards(data) {
+  const colors = ['#D6EAF8','#D5F5E3','#FEF9E7','#FADBD8','#F2F3F4','#EBF5FB'];
+  const icons  = ['🏠','🚗','🏍','💡','🧹','🔒'];
+  document.getElementById('feeCards').innerHTML = data.slice(0,6).map((p,i) => `
+    <div class="fee-card" onclick="openModal('edit',${JSON.stringify(p).replace(/"/g,'&quot;')})">
+      <div class="fee-ico" style="background:${colors[i%colors.length]}">${icons[i%icons.length]}</div>
+      <div>
+        <div class="fee-name">${p.tenPhi}</div>
+        <div class="fee-price">${p.donGia.toLocaleString('vi-VN')}đ</div>
+        <div class="fee-unit">${donViLabel(p.donViTinh)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ===== RENDER TABLE =====
+function renderTable(data) {
+  if (!data.length) {
+    document.getElementById('tableBody').innerHTML =
+      '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted)">Không có dữ liệu</td></tr>';
+    return;
+  }
+  document.getElementById('tableBody').innerHTML = data.map((p,i) => `
+    <tr>
+      <td style="color:var(--muted)">${String(i+1).padStart(3,'0')}</td>
+      <td><b>${p.tenPhi}</b><br><small style="color:var(--muted)">${p.moTa||''}</small></td>
+      <td><b style="color:var(--primary)">${p.donGia.toLocaleString('vi-VN')}đ</b></td>
+      <td>${donViLabel(p.donViTinh)}</td>
+      <td><span class="badge ${p.loaiPhi==='bat_buoc'?'badge-danger':'badge-success'}">${p.loaiPhi==='bat_buoc'?'Bắt buộc':'Tự nguyện'}</span></td>
+      <td><span class="badge ${p.trangThai==='dang_ap_dung'?'badge-success':'badge-warn'}">${p.trangThai==='dang_ap_dung'?'Đang áp dụng':'Tạm ngưng'}</span></td>
+      <td style="display:flex;gap:4px">
+        <button class="abtn" onclick='openModal("edit",${JSON.stringify(p).replace(/"/g,"&quot;")})'>✏️ Sửa giá</button>
+        <button class="abtn danger" onclick="deletePhi('${p.id}','${p.tenPhi}')">🗑</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function donViLabel(dv) {
+  return {m2:'đồng/m²', xe:'đồng/xe/tháng', ho:'đồng/hộ/tháng', nguoi:'đồng/người/tháng'}[dv] || dv;
+}
+
+// ===== FORMAT TIỀN =====
+function formatDonGia() {
+  const val = document.getElementById('donGia').value;
+  const num = parseInt(val);
+  document.getElementById('donGiaPreview').textContent =
+    num > 0 ? `→ ${num.toLocaleString('vi-VN')} đồng` : '';
+}
+
+// ===== MODAL =====
+function openModal(mode, data={}) {
+  document.getElementById('modalOverlay').classList.add('show');
+  document.getElementById('modalTitle').textContent = mode==='add' ? 'Thêm loại phí mới' : 'Sửa đơn giá phí';
+  document.getElementById('phiId').value        = data.id || '';
+  document.getElementById('tenPhi').value       = data.tenPhi || '';
+  document.getElementById('donGia').value       = data.donGia || '';
+  document.getElementById('donViTinh').value    = data.donViTinh || 'm2';
+  document.getElementById('loaiPhi').value      = data.loaiPhi || 'bat_buoc';
+  document.getElementById('trangThai').value    = data.trangThai || 'dang_ap_dung';
+  document.getElementById('moTa').value         = data.moTa || '';
+  document.getElementById('donGiaPreview').textContent = data.donGia ? `→ ${parseInt(data.donGia).toLocaleString('vi-VN')} đồng` : '';
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+  document.getElementById('phiForm').reset();
+  document.getElementById('donGiaPreview').textContent = '';
+  document.querySelectorAll('.error').forEach(e=>e.classList.remove('error'));
+  document.querySelectorAll('.show-error').forEach(e=>e.classList.remove('show-error'));
+}
+
+// ===== VALIDATION =====
+function validate() {
+  let ok = true;
+  document.querySelectorAll('.error').forEach(e=>e.classList.remove('error'));
+  document.querySelectorAll('.show-error').forEach(e=>e.classList.remove('show-error'));
+  const tenPhi = document.getElementById('tenPhi');
+  const donGia = document.getElementById('donGia');
+  if (!tenPhi.value.trim()) { tenPhi.classList.add('error'); document.getElementById('err-tenPhi').classList.add('show-error'); ok=false; }
+  if (!donGia.value || +donGia.value <= 0) { donGia.classList.add('error'); document.getElementById('err-donGia').classList.add('show-error'); ok=false; }
+  return ok;
+}
+
+// ===== SUBMIT =====
+async function submitForm() {
+  if (!validate()) return;
+  const id = document.getElementById('phiId').value;
+  const body = {
+    tenPhi:    document.getElementById('tenPhi').value.trim(),
+    donGia:    +document.getElementById('donGia').value,
+    donViTinh: document.getElementById('donViTinh').value,
+    loaiPhi:   document.getElementById('loaiPhi').value,
+    trangThai: document.getElementById('trangThai').value,
+    moTa:      document.getElementById('moTa').value.trim(),
+  };
+  try {
+    const res = await fetch(id ? `${API}/danh-muc-phi/${id}` : `${API}/danh-muc-phi`, {
+      method: id ? 'PUT' : 'POST',
+      headers: {'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) throw new Error('API Error');
+    closeModal(); loadData();
+    alert(id ? 'Cập nhật đơn giá thành công!' : 'Thêm loại phí thành công!');
+  } catch { alert('Không thể kết nối server!'); }
+}
+
+// ===== XÓA =====
+async function deletePhi(id, ten) {
+  if (!confirm(`Xóa khoản phí "${ten}"?`)) return;
+  try {
+    const res = await fetch(`${API}/danh-muc-phi/${id}`, {
+      method:'DELETE', headers:{'Authorization':`Bearer ${token}`}
+    });
+    if (!res.ok) throw new Error('API Error');
+    loadData(); alert('Xóa thành công!');
+  } catch { alert('Không thể kết nối server!'); }
+}
+
+function handleLogout() { if(confirm('Đăng xuất?')){ localStorage.removeItem('token'); window.location.href='login.html'; } }
+
+// ===== MOCK DATA =====
+const MOCK_DATA = [
+  {id:'1',tenPhi:'Phí dịch vụ',    donGia:7000,   donViTinh:'m2',    loaiPhi:'bat_buoc', trangThai:'dang_ap_dung', moTa:'Phí quản lý, vệ sinh, bảo vệ'},
+  {id:'2',tenPhi:'Phí gửi xe máy', donGia:100000, donViTinh:'xe',    loaiPhi:'bat_buoc', trangThai:'dang_ap_dung', moTa:'Mỗi xe máy/tháng'},
+  {id:'3',tenPhi:'Phí gửi ô tô',   donGia:1200000,donViTinh:'xe',    loaiPhi:'bat_buoc', trangThai:'dang_ap_dung', moTa:'Mỗi ô tô/tháng'},
+  {id:'4',tenPhi:'Phí internet',   donGia:200000, donViTinh:'ho',    loaiPhi:'tu_nguyen',trangThai:'dang_ap_dung', moTa:'Gói cáp quang 100Mbps'},
+  {id:'5',tenPhi:'Quỹ cộng đồng',  donGia:50000,  donViTinh:'ho',    loaiPhi:'tu_nguyen',trangThai:'dang_ap_dung', moTa:'Quỹ sự kiện cộng đồng'},
+  {id:'6',tenPhi:'Phí thang máy',  donGia:15000,  donViTinh:'nguoi', loaiPhi:'bat_buoc', trangThai:'tam_ngung',    moTa:'Tạm ngưng để bảo trì'},
+];
+
+loadData();
+</script>
+</body>
+</html>

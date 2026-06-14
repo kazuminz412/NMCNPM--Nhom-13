@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Hóa Đơn – Quản Lý Hộ Dân</title>
+<link rel="stylesheet" href="layout.css"/>
+<style>
+/* Nút khởi tạo siêu to */
+.btn-khoi-tao {
+  width: 100%;
+  padding: 20px;
+  background: linear-gradient(135deg, #1B4F72, #2E86C1);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 22px;
+  box-shadow: 0 4px 20px rgba(27,79,114,.3);
+  transition: all .2s;
+  letter-spacing: .3px;
+}
+.btn-khoi-tao:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(27,79,114,.4); }
+.btn-khoi-tao:active { transform: translateY(0); }
+.btn-khoi-tao .icon { font-size: 26px; }
+
+/* Modal chi tiết hóa đơn */
+.modal-lg { width: 680px; }
+.hd-detail-header {
+  background: var(--primary);
+  color: #fff;
+  padding: 16px 20px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.hd-detail-header h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.hd-detail-header p  { font-size: 12px; opacity: .75; }
+.hd-total { text-align: right; }
+.hd-total .amount { font-size: 22px; font-weight: 700; }
+.hd-total .label  { font-size: 11px; opacity: .75; }
+.chi-tiet-table { font-size: 12.5px; }
+.form-error.show-error { display: block; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="hdr-logo"><div class="hdr-icon">🏢</div><div><div class="hdr-title">Quản Lý Hộ Dân</div><div class="hdr-sub">BlueMoon – v1.0</div></div></div>
+  <div class="hdr-mid">
+    <div class="search-wrap"><span class="search-icon">🔍</span><input placeholder="Tìm kiếm..."/></div>
+    <nav class="breadcrumb">🏠 / <b>Hóa đơn</b></nav>
+  </div>
+  <div class="hdr-right">
+    <button class="hbtn">🔔</button><button class="hbtn">⚙️</button>
+    <div class="upill"><div class="uavatar">AD</div><div><div class="uname">Admin</div><div class="urole">Quản trị viên</div></div></div>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<aside>
+  <div class="nav-sec"><span class="nav-lbl">Tổng quan</span>
+    <a href="dashboard.html" class="nav-a">📊 Bảng điều khiển </a>
+  </div>
+  <div class="ndiv"></div>
+  <div class="nav-sec"><span class="nav-lbl">Quản lý dân cư</span>
+    <a href="ho-dan.html" class="nav-a">🏠 Hộ dân <span class="nbadge">248</span></a>
+    <a href="nhan-khau.html" class="nav-a">👥 Nhân khẩu </a>
+    <a href="phuong-tien.html" class="nav-a">🚗 Phương tiện </a>
+  </div>
+  <div class="ndiv"></div>
+  <div class="nav-sec"><span class="nav-lbl">Tài chính</span>
+    <a href="danh-muc-phi.html" class="nav-a">💲 Danh mục khoản phí </a>
+    <a href="hoa-don.html" class="nav-a active">🧾 Hóa đơn </a>
+    <a href="thanh-toan.html" class="nav-a">💳 Thanh toán </a>
+    <a href="khoan-thu.html" class="nav-a">📋 Khoản thu </a>
+    <a href="thu-phi.html" class="nav-a">💰 Thu phí <span class="nbadge red">5</span></a>
+    <a href="lich-su.html" class="nav-a">📜 Lịch sử giao dịch </a>
+  </div>
+  <div class="ndiv"></div>
+  <div class="nav-sec"><span class="nav-lbl">Báo cáo</span>
+    <a href="thong-ke.html" class="nav-a">📈 Thống kê </a>
+  </div>
+  <div class="sidebar-foot"><button class="logout" onclick="handleLogout()">🚪 Đăng xuất</button></div>
+</aside>
+
+<!-- MAIN -->
+<main>
+  <div class="page-head"><h1>Quản Lý Hóa Đơn</h1></div>
+
+  <!-- NÚT SIÊU TO KHỔNG LỒ -->
+  <button class="btn-khoi-tao" id="btnKhoiTao" onclick="khoiTaoHoaDon()">
+    <span class="icon">🧾</span>
+    KHỞI TẠO HÓA ĐƠN THÁNG NÀY
+    <span style="font-size:13px;opacity:.8;font-weight:400" id="thangHienTai"></span>
+  </button>
+
+  <!-- Filter -->
+  <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+    <input type="month" id="filterThang" class="form-control" style="width:160px" onchange="loadData()"/>
+    <select id="filterTrangThai" class="form-control" style="width:180px" onchange="loadData()">
+      <option value="">Tất cả trạng thái</option>
+      <option value="da_thanh_toan">Đã thanh toán</option>
+      <option value="chua_thanh_toan">Chưa thanh toán</option>
+    </select>
+    <input type="text" id="searchInput" class="form-control" style="width:220px"
+      placeholder="Tìm hộ dân, căn hộ..." oninput="filterTable()"/>
+  </div>
+
+  <!-- Bảng hóa đơn -->
+  <div class="card">
+    <div class="card-hdr">
+      <div class="card-ttl">🧾 Danh sách hóa đơn</div>
+      <span style="font-size:12px;color:var(--muted)">
+        <b id="countChuaTT" style="color:var(--danger)">0</b> chưa thanh toán /
+        <b id="countDaTT" style="color:var(--success)">0</b> đã thanh toán
+      </span>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Hộ dân</th><th>Tháng</th><th>Tổng tiền</th><th>Trạng thái</th><th>Ngày TT</th><th>Thao tác</th></tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted)">Đang tải dữ liệu...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2026 <b>Hệ Thống Quản Lý Hộ Dân & Thu Phí</b> — Đồ án Công nghệ Phần mềm – Nhóm 13</p>
+  <div class="flinks"><span>Hướng dẫn</span><span>Hỗ trợ</span></div>
+</footer>
+
+<!-- MODAL CHI TIẾT HÓA ĐƠN -->
+<div class="modal-overlay" id="modalChiTiet">
+  <div class="modal modal-lg">
+    <div class="modal-hdr">
+      <span class="modal-ttl">Chi tiết hóa đơn</span>
+      <button class="modal-close" onclick="closeChiTiet()">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Header thông tin hóa đơn -->
+      <div class="hd-detail-header">
+        <div>
+          <h3 id="dt-tenHo">Nguyễn Văn An – A1-204</h3>
+          <p id="dt-thang">Hóa đơn tháng 05/2026</p>
+          <p id="dt-trangThai"></p>
+        </div>
+        <div class="hd-total">
+          <div class="amount" id="dt-tongTien">0đ</div>
+          <div class="label">Tổng tiền</div>
+        </div>
+      </div>
+
+      <!-- Bảng chi tiết khoản phí -->
+      <p style="font-size:13px;font-weight:600;margin-bottom:8px">📋 Các khoản phí trong hóa đơn:</p>
+      <div class="tbl-wrap">
+        <table class="chi-tiet-table">
+          <thead>
+            <tr><th>Khoản phí</th><th>Đơn giá</th><th>Số lượng</th><th>Thành tiền</th></tr>
+          </thead>
+          <tbody id="chiTietBody"></tbody>
+        </table>
+      </div>
+      <div style="text-align:right;padding:10px 0;font-size:14px;font-weight:700;color:var(--primary)">
+        Tổng cộng: <span id="dt-tongCong">0đ</span>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeChiTiet()">Đóng</button>
+      <button class="btn btn-success" id="btnThuTien" onclick="moThanhToan()">💰 Xác nhận Thu Tiền</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'http://localhost:8080/api';
+const token = localStorage.getItem('token');
+if (!token) window.location.href = 'login.html';
+
+let allData = [];
+let currentHoaDon = null;
+
+// Hiện tháng hiện tại
+const now = new Date();
+const thangHT = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+document.getElementById('thangHienTai').textContent = `(T${now.getMonth()+1}/${now.getFullYear()})`;
+document.getElementById('filterThang').value = thangHT;
+
+// ===== KHỞI TẠO HÓA ĐƠN (API số 5) =====
+async function khoiTaoHoaDon() {
+  if (!confirm(`Khởi tạo hóa đơn cho tất cả hộ dân tháng ${now.getMonth()+1}/${now.getFullYear()}?\n\nHệ thống sẽ tự tính phí dựa trên diện tích và nhân khẩu từng hộ.`)) return;
+
+  const btn = document.getElementById('btnKhoiTao');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="icon">⏳</span> Đang khởi tạo...';
+
+  try {
+    const res = await fetch(`${API}/hoa-don/khoi-tao`, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${token}` },
+      body: JSON.stringify({ thang: thangHT })
+    });
+    if (!res.ok) throw new Error('API Error');
+    const data = await res.json();
+    alert(`✅ Khởi tạo thành công!\nĐã tạo ${data.soHoaDon || 248} hóa đơn cho tháng ${now.getMonth()+1}/${now.getFullYear()}`);
+    loadData();
+  } catch {
+    // Demo khi chưa có backend
+    alert(`✅ Demo: Đã khởi tạo 248 hóa đơn cho tháng ${now.getMonth()+1}/${now.getFullYear()}!\n(Sẽ gọi API thật khi backend sẵn sàng)`);
+    allData = MOCK_DATA;
+    renderTable(allData);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<span class="icon">🧾</span> KHỞI TẠO HÓA ĐƠN THÁNG NÀY <span style="font-size:13px;opacity:.8;font-weight:400">(T${now.getMonth()+1}/${now.getFullYear()})</span>`;
+  }
+}
+
+// ===== LOAD DATA =====
+async function loadData() {
+  document.getElementById('tableBody').innerHTML =
+    '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted)">Đang tải dữ liệu...</td></tr>';
+  const thang = document.getElementById('filterThang').value;
+  try {
+    const res = await fetch(`${API}/hoa-don?thang=${thang}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error('API Error');
+    allData = await res.json();
+  } catch {
+    allData = MOCK_DATA;
+  }
+  renderTable(allData);
+}
+
+// ===== RENDER TABLE =====
+function renderTable(data) {
+  const tt = document.getElementById('filterTrangThai').value;
+  const filtered = tt ? data.filter(d => d.trangThai === tt) : data;
+
+  const chuaTT = filtered.filter(d => d.trangThai === 'chua_thanh_toan').length;
+  const daTT   = filtered.filter(d => d.trangThai === 'da_thanh_toan').length;
+  document.getElementById('countChuaTT').textContent = chuaTT;
+  document.getElementById('countDaTT').textContent   = daTT;
+
+  if (!filtered.length) {
+    document.getElementById('tableBody').innerHTML =
+      '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted)">Không có hóa đơn</td></tr>';
+    return;
+  }
+
+  document.getElementById('tableBody').innerHTML = filtered.map((hd, i) => `
+    <tr>
+      <td style="color:var(--muted)">${String(i+1).padStart(3,'0')}</td>
+      <td><b>${hd.tenChuHo}</b><br><small style="color:var(--muted)">${hd.canHo}</small></td>
+      <td>${hd.thang}</td>
+      <td><b style="color:var(--primary)">${hd.tongTien.toLocaleString('vi-VN')}đ</b></td>
+      <td><span class="badge ${hd.trangThai==='da_thanh_toan'?'badge-success':'badge-danger'}">
+        ${hd.trangThai==='da_thanh_toan'?'✅ Đã thanh toán':'❌ Chưa thanh toán'}
+      </span></td>
+      <td>${hd.ngayThanhToan || '—'}</td>
+      <td>
+        <button class="abtn" onclick='xemChiTiet(${JSON.stringify(hd).replace(/"/g,"&quot;")})'>📄 Chi tiết</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ===== LỌC =====
+function filterTable() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  document.querySelectorAll('#tableBody tr').forEach(tr => {
+    tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+// ===== XEM CHI TIẾT =====
+function xemChiTiet(hd) {
+  currentHoaDon = hd;
+  document.getElementById('modalChiTiet').classList.add('show');
+  document.getElementById('dt-tenHo').textContent    = `${hd.tenChuHo} – ${hd.canHo}`;
+  document.getElementById('dt-thang').textContent    = `Hóa đơn tháng ${hd.thang}`;
+  document.getElementById('dt-tongTien').textContent = hd.tongTien.toLocaleString('vi-VN') + 'đ';
+  document.getElementById('dt-tongCong').textContent = hd.tongTien.toLocaleString('vi-VN') + 'đ';
+  document.getElementById('dt-trangThai').innerHTML  =
+    `<span style="font-size:12px">${hd.trangThai==='da_thanh_toan'?'✅ Đã thanh toán':'❌ Chưa thanh toán'}</span>`;
+
+  // Ẩn/hiện nút thu tiền
+  document.getElementById('btnThuTien').style.display =
+    hd.trangThai === 'chua_thanh_toan' ? 'inline-flex' : 'none';
+
+  // Render chi tiết khoản phí
+  const items = hd.chiTiet || MOCK_CHI_TIET;
+  document.getElementById('chiTietBody').innerHTML = items.map(ct => `
+    <tr>
+      <td>${ct.tenPhi}</td>
+      <td>${ct.donGia.toLocaleString('vi-VN')}đ / ${ct.donVi}</td>
+      <td>${ct.soLuong} ${ct.donVi}</td>
+      <td><b>${(ct.donGia * ct.soLuong).toLocaleString('vi-VN')}đ</b></td>
+    </tr>
+  `).join('');
+}
+
+function closeChiTiet() {
+  document.getElementById('modalChiTiet').classList.remove('show');
+  currentHoaDon = null;
+}
+
+// ===== MỞ TRANG THANH TOÁN =====
+function moThanhToan() {
+  if (!currentHoaDon) return;
+  // Lưu thông tin hóa đơn để trang thanh-toan.html dùng
+  localStorage.setItem('hoaDonThanhToan', JSON.stringify(currentHoaDon));
+  window.location.href = 'thanh-toan.html';
+}
+
+function handleLogout() {
+  if (confirm('Đăng xuất?')) { localStorage.removeItem('token'); window.location.href = 'login.html'; }
+}
+
+// ===== MOCK DATA =====
+const MOCK_CHI_TIET = [
+  {tenPhi:'Phí dịch vụ',   donGia:7000,   soLuong:65,  donVi:'m²'},
+  {tenPhi:'Phí gửi xe máy',donGia:100000, soLuong:1,   donVi:'xe'},
+  {tenPhi:'Phí thang máy', donGia:15000,  soLuong:4,   donVi:'người'},
+];
+
+const MOCK_DATA = [
+  {id:'1',tenChuHo:'Nguyễn Văn An', canHo:'A1-204',thang:'2026-05',tongTien:615000, trangThai:'da_thanh_toan',  ngayThanhToan:'2026-05-10',chiTiet:MOCK_CHI_TIET},
+  {id:'2',tenChuHo:'Trần Thị Bình', canHo:'A1-310',thang:'2026-05',tongTien:485000, trangThai:'chua_thanh_toan',ngayThanhToan:null,         chiTiet:MOCK_CHI_TIET},
+  {id:'3',tenChuHo:'Lê Minh Châu',  canHo:'B2-108',thang:'2026-05',tongTien:436000, trangThai:'chua_thanh_toan',ngayThanhToan:null,         chiTiet:MOCK_CHI_TIET},
+  {id:'4',tenChuHo:'Phạm Đức Dũng', canHo:'B2-205',thang:'2026-05',tongTien:760000, trangThai:'da_thanh_toan',  ngayThanhToan:'2026-05-08', chiTiet:MOCK_CHI_TIET},
+  {id:'5',tenChuHo:'Hoàng Thị Lan', canHo:'C3-402',thang:'2026-05',tongTien:520000, trangThai:'chua_thanh_toan',ngayThanhToan:null,         chiTiet:MOCK_CHI_TIET},
+];
+
+loadData();
+</script>
+</body>
+</html>
