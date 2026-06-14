@@ -1,7 +1,96 @@
-// Đổi mặc định fallback thành CU_DAN để an toàn tuyệt đối
+const AUTH = (() => {
+  const token = localStorage.getItem('token');
+  const userRaw = localStorage.getItem('user');
+  const user = userRaw ? JSON.parse(userRaw) : null;
+  
+  // Đổi mặc định fallback thành CU_DAN để an toàn tuyệt đối
   const role = user?.role || localStorage.getItem('role') || 'CU_DAN';
 
-  // ... (Giữ nguyên cụm MENU_CONFIG và hàm protect() như cũ) ...
+  function protect() {
+    if (!token) {
+      window.location.href = 'login.html';
+      return false;
+    }
+    return true;
+  }
+
+  const MENU_CONFIG = {
+    ADMIN: {
+      sections: [
+        {
+          label: 'Tổng quan',
+          items: [
+            { href: 'dashboard.html', icon: '📊', label: 'Bảng điều khiển', key: 'dashboard' },
+          ]
+        },
+        {
+          label: 'Quản lý dân cư',
+          items: [
+            { href: 'ho-dan.html',      icon: '🏠', label: 'Hộ dân',       key: 'hodan',      badge: '248' },
+            { href: 'nhan-khau.html',   icon: '👥', label: 'Nhân khẩu',    key: 'nhankhau' },
+            { href: 'phuong-tien.html', icon: '🚗', label: 'Phương tiện',  key: 'phuongtien' },
+          ]
+        },
+        {
+          label: 'Tài chính',
+          items: [
+            { href: 'danh-muc-phi.html', icon: '💲', label: 'Danh mục khoản phí', key: 'danhmucphi' },
+            { href: 'hoa-don.html',      icon: '🧾', label: 'Hóa đơn',            key: 'hoadon' },
+            { href: 'thanh-toan.html',   icon: '💳', label: 'Thanh toán',         key: 'thanhtoan' },
+            { href: 'khoan-thu.html',    icon: '📋', label: 'Khoản thu',          key: 'khoanthu' },
+            { href: 'thu-phi.html',      icon: '💰', label: 'Thu phí',            key: 'thuphi', badgeDanger: '5' },
+            { href: 'lich-su.html',      icon: '📜', label: 'Lịch sử giao dịch',  key: 'lichsu' },
+          ]
+        },
+        {
+          label: 'Báo cáo',
+          items: [
+            { href: 'thong-ke.html', icon: '📈', label: 'Thống kê', key: 'thongke' },
+          ]
+        },
+        {
+          label: 'Hệ thống',
+          items: [
+            { href: 'phan-quyen.html', icon: '🛡️', label: 'Phân quyền', key: 'phanquyen' },
+          ]
+        },
+      ]
+    },
+
+    KE_TOAN: {
+      sections: [
+        {
+          label: 'Tài chính',
+          items: [
+            { href: 'danh-muc-phi.html', icon: '💲', label: 'Danh mục khoản phí', key: 'danhmucphi' },
+            { href: 'hoa-don.html',      icon: '🧾', label: 'Hóa đơn',            key: 'hoadon' },
+            { href: 'thanh-toan.html',   icon: '💳', label: 'Thanh toán',         key: 'thanhtoan' },
+            { href: 'khoan-thu.html',    icon: '📋', label: 'Khoản thu',          key: 'khoanthu' },
+            { href: 'thu-phi.html',      icon: '💰', label: 'Thu phí',            key: 'thuphi', badgeDanger: '5' },
+            { href: 'lich-su.html',      icon: '📜', label: 'Lịch sử giao dịch',  key: 'lichsu' },
+          ]
+        },
+        {
+          label: 'Báo cáo',
+          items: [
+            { href: 'thong-ke.html', icon: '📈', label: 'Thống kê', key: 'thongke' },
+          ]
+        },
+      ]
+    },
+
+    CU_DAN: {
+      sections: [
+        {
+          label: 'Góc cư dân',
+          items: [
+            { href: 'cu-dan-nha-toi.html',  icon: '🏠', label: 'Nhà của tôi',        key: 'nhatoi' },
+            { href: 'cu-dan-hoa-don.html',  icon: '🧾', label: 'Hóa đơn & Thanh toán', key: 'cudanhoadon' },
+          ]
+        },
+      ]
+    },
+  };
 
   function renderMenu(activeKey) {
     const aside = document.querySelector('aside');
@@ -41,9 +130,9 @@
     if (avatarEl) avatarEl.textContent = (user.hoTen || user.username || 'U')[0].toUpperCase();
   }
 
-  // HÀM MỚI BỔ SUNG: Kiểm tra xem activeKey hiện tại có nằm trong MENU_CONFIG của người dùng không
+  // Kiểm tra xem activeKey hiện tại có nằm trong MENU_CONFIG của người dùng không
   function checkPermission(activeKey) {
-    if (!activeKey) return true; // Nếu trang không truyền key (VD: trang thông báo chung) thì cho qua
+    if (!activeKey) return true; // Nếu trang không truyền key thì cho qua
     
     const config = MENU_CONFIG[role];
     let isAllowed = false;
@@ -67,7 +156,7 @@
     }
   }
 
-  // NÂNG CẤP HÀM INIT: Chặn cửa gay gắt hơn
+  // Chặn cửa gay gắt hơn
   function init(activeKey = '') {
     if (!protect()) return; // Chặn nếu chưa có Token
     
