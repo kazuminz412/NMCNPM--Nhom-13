@@ -125,6 +125,13 @@ CREATE TABLE dong_gop_tu_nguyen (
     FOREIGN KEY (nguoi_thu_id) REFERENCES nguoi_dung(id) ON DELETE SET NULL
 );
 
+CREATE TABLE nhat_ky_hoat_dong (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    noi_dung TEXT NOT NULL,
+    mau_sac VARCHAR(50),
+    thoi_gian DATETIME NOT NULL
+);
+
 -- TẠO CÁC INDEX 
 CREATE INDEX idx_nhan_khau_ho_ten ON nhan_khau(ho_ten);
 CREATE INDEX idx_ho_gia_dinh_so_phong ON ho_gia_dinh(so_phong);
