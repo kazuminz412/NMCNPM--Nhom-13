@@ -152,11 +152,10 @@ const MOCK_XE = [
 async function loadData() {
   let ho = MOCK_HO, nk = MOCK_NK, xe = MOCK_XE;
   
-  try {
-    const [rHo, rNk, rXe] = await Promise.all([
-      fetch(`${API}/ho-dan/me`,       { headers: {'Authorization': `Bearer ${token}`} }),
-      fetch(`${API}/nhan-khau/me`,    { headers: {'Authorization': `Bearer ${token}`} }),
-      fetch(`${API}/phuong-tien/me`,  { headers: {'Authorization': `Bearer ${token}`} }),
+  const [rHo, rNk, rXe] = await Promise.all([
+         fetch(`${API}/me/ho-dan`,       { headers: {'Authorization': `Bearer ${token}`} }),
+         fetch(`${API}/me/nhan-khau`,    { headers: {'Authorization': `Bearer ${token}`} }),
+         fetch(`${API}/me/phuong-tien`,  { headers: {'Authorization': `Bearer ${token}`} }),
     ]);
     if (rHo.ok) ho = await rHo.json();
     if (rNk.ok) nk = await rNk.json();
