@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Nhà Của Tôi – Cư Dân</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --primary:#1B4F72;--primary-light:#2E86C1;--primary-pale:#D6EAF8;
+  --accent:#F39C12;--success:#1E8449;--success-bg:#D5F5E3;
+  --danger:#C0392B;--danger-bg:#FADBD8;
+  --bg:#EEF2F7;--surface:#fff;--text:#1A252F;--muted:#5D6D7E;
+  --border:#D5DBDB;--radius:10px;
+}
+body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* HEADER */
+.hdr{background:var(--primary);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between;position:fixed;top:0;left:0;right:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.hdr-logo{display:flex;align-items:center;gap:10px}
+.hdr-icon{width:34px;height:34px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px}
+.hdr-title{font-size:13px;font-weight:700;color:#fff}
+.hdr-sub{font-size:10px;color:rgba(255,255,255,.5)}
+.hdr-right{display:flex;align-items:center;gap:8px}
+.user-info{text-align:right}
+.user-info .name{font-size:12.5px;font-weight:600;color:#fff}
+.user-info .room{font-size:10px;color:rgba(255,255,255,.6)}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff}
+.btn-logout{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;padding:5px 10px;border-radius:6px;font-size:11.5px;cursor:pointer;font-family:inherit}
+.btn-logout:hover{background:rgba(255,255,255,.2)}
+
+/* NAV TABS */
+.nav-tabs{background:#fff;border-bottom:1px solid var(--border);padding:0 20px;display:flex;gap:0;margin-top:56px;position:sticky;top:56px;z-index:90}
+.tab{padding:14px 20px;font-size:13.5px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;transition:all .15s;text-decoration:none;display:flex;align-items:center;gap:6px}
+.tab:hover{color:var(--primary)}
+.tab.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:600}
+
+/* CONTENT */
+.content{padding:24px 20px;max-width:900px;margin:0 auto}
+.section-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:18px}
+.card-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-ttl{font-size:13.5px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:7px}
+
+/* HO INFO */
+.ho-info{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.info-item{padding:12px 18px;border-bottom:1px solid #F0F4F8;display:flex;align-items:center;gap:10px}
+.info-item:nth-child(odd){border-right:1px solid #F0F4F8}
+.info-label{font-size:11.5px;color:var(--muted);margin-bottom:2px}
+.info-value{font-size:13.5px;font-weight:600;color:var(--text)}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{background:#F5F8FA;padding:9px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-bottom:1px solid var(--border)}
+tbody td{padding:11px 14px;border-bottom:1px solid #F0F4F8;vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+
+/* BADGE */
+.badge{display:inline-block;padding:3px 8px;border-radius:12px;font-size:11px;font-weight:600}
+.badge-success{background:var(--success-bg);color:var(--success)}
+.badge-primary{background:var(--primary-pale);color:var(--primary)}
+.badge-warn{background:#FEF9E7;color:#B7770D}
+.badge-gray{background:#F2F3F4;color:#717D7E}
+
+/* FOOTER */
+footer{background:#fff;border-top:1px solid var(--border);padding:12px 20px;text-align:center;font-size:11.5px;color:var(--muted);margin-top:20px}
+footer b{color:var(--primary)}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-logo">
+    <div class="hdr-icon">🏢</div>
+    <div><div class="hdr-title">BlueMoon</div><div class="hdr-sub">Cổng thông tin cư dân</div></div>
+  </div>
+  <div class="hdr-right">
+    <div class="user-info">
+      <div class="name" id="hdr-name">Nguyễn Văn An</div>
+      <div class="room" id="hdr-room">Căn hộ A1-204</div>
+    </div>
+    <div class="avatar" id="hdr-avatar">A</div>
+    <button class="btn-logout" onclick="AUTH.logout()">🚪 Đăng xuất</button>
+  </div>
+</header>
+
+<nav class="nav-tabs">
+  <a href="cu-dan-nha-toi.html" class="tab active">🏠 Nhà của tôi</a>
+  <a href="cu-dan-hoa-don.html" class="tab">🧾 Hóa đơn & Thanh toán</a>
+</nav>
+
+<div class="content">
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-ttl">🏠 Thông tin hộ gia đình</div></div>
+    <div class="ho-info" id="hoInfo">
+      <div class="info-item"><div><div class="info-label">Chủ hộ</div><div class="info-value" id="i-chuHo">—</div></div></div>
+      <div class="info-item"><div><div class="info-label">Căn hộ</div><div class="info-value" id="i-canHo">—</div></div></div>
+      <div class="info-item"><div><div class="info-label">Số nhân khẩu</div><div class="info-value" id="i-soNK">—</div></div></div>
+      <div class="info-item"><div><div class="info-label">Diện tích</div><div class="info-value" id="i-dienTich">—</div></div></div>
+      <div class="info-item"><div><div class="info-label">Số điện thoại</div><div class="info-value" id="i-sdt">—</div></div></div>
+      <div class="info-item"><div><div class="info-label">Trạng thái phí</div><div class="info-value" id="i-trangThai">—</div></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-ttl">👥 Người đang ở (<span id="soNKCount">0</span>)</div></div>
+    <table>
+      <thead><tr><th>#</th><th>Họ và tên</th><th>Ngày sinh</th><th>Giới tính</th><th>Quan hệ</th><th>Trạng thái</th></tr></thead>
+      <tbody id="nhanKhauBody">
+        <tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted)">Đang tải...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-ttl">🚗 Xe cộ đang đăng ký (<span id="soXeCount">0</span>)</div></div>
+    <table>
+      <thead><tr><th>#</th><th>Biển số</th><th>Loại xe</th><th>Hãng / Màu</th><th>Phí/tháng</th></tr></thead>
+      <tbody id="xeBody">
+        <tr><td colspan="5" style="text-align:center;padding:20px;color:var(--muted)">Đang tải...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<footer><p>© 2026 <b>BlueMoon</b> – Cổng thông tin cư dân – Nhóm 13</p></footer>
+
+<script src="auth.js"></script>
+<script>
+// ĐÃ SỬA: Gọi hàm bảo vệ chuẩn của auth.js
+AUTH.init('nhatoi');
+
+const API = 'http://localhost:8080/api';
+const token = AUTH.token;
+const user  = AUTH.user;
+
+// Đổ thông tin Header
+document.getElementById('hdr-name').textContent   = user.hoTen || user.username || '—';
+document.getElementById('hdr-avatar').textContent = (user.hoTen || user.username || 'U')[0].toUpperCase();
+
+const MOCK_HO = { chuHo:'Nguyễn Văn An', canHo:'A1-204', soNK:4, dienTich:'65 m²', sdt:'0912 345 678', trangThai:'da_dong' };
+const MOCK_NK = [
+  {hoTen:'Nguyễn Văn An', ngaySinh:'1985-03-15', gioiTinh:'nam', quanHe:'chu_ho',  trangThai:'thuong_tru'},
+  {hoTen:'Lê Thị Hoa',    ngaySinh:'1988-07-22', gioiTinh:'nu',  quanHe:'vo_chong',trangThai:'thuong_tru'}
+];
+const MOCK_XE = [
+  {bienSo:'30A-12345', loaiXe:'xe_may', hangXe:'Honda', mauXe:'Đỏ',   phi:100000}
+];
+
+async function loadData() {
+  let ho = MOCK_HO, nk = MOCK_NK, xe = MOCK_XE;
+  
+  try {
+    const [rHo, rNk, rXe] = await Promise.all([
+      fetch(`${API}/ho-dan/me`,       { headers: {'Authorization': `Bearer ${token}`} }),
+      fetch(`${API}/nhan-khau/me`,    { headers: {'Authorization': `Bearer ${token}`} }),
+      fetch(`${API}/phuong-tien/me`,  { headers: {'Authorization': `Bearer ${token}`} }),
+    ]);
+    if (rHo.ok) ho = await rHo.json();
+    if (rNk.ok) nk = await rNk.json();
+    if (rXe.ok) xe = await rXe.json();
+  } catch (error) {
+    console.error("Lỗi tải dữ liệu, đang dùng Mock Data", error);
+  }
+
+  // Render Thông tin hộ
+  document.getElementById('i-chuHo').textContent    = ho.chuHo || ho.tenChuHo || '—';
+  document.getElementById('i-canHo').textContent    = ho.canHo || '—';
+  document.getElementById('i-soNK').textContent     = `${ho.soNK || ho.soNhanKhau || '—'} người`;
+  document.getElementById('i-dienTich').textContent = ho.dienTich || '—';
+  document.getElementById('i-sdt').textContent      = ho.sdt || '—';
+  document.getElementById('hdr-room').textContent   = `Căn hộ ${ho.canHo || '—'}`;
+  
+  const ttMap = {da_dong:'✅ Đã đóng phí', chua_dong:'❌ Chưa đóng phí', mot_phan:'⚠️ Đóng một phần'};
+  document.getElementById('i-trangThai').innerHTML  = ttMap[ho.trangThai] || '—';
+
+  // Render Nhân khẩu 
+  const safeNk = nk || [];
+  document.getElementById('soNKCount').textContent = safeNk.length;
+  const quanHeLabel = {chu_ho:'Chủ hộ',vo_chong:'Vợ/Chồng',con:'Con',cha_me:'Cha/Mẹ',khac:'Khác'};
+  const ttNKLabel   = {thuong_tru:'Thường trú',tam_tru:'Tạm trú',tam_vang:'Tạm vắng',chuyen_di:'Đã chuyển đi'};
+  const ttNKCls     = {thuong_tru:'badge-success',tam_tru:'badge-primary',tam_vang:'badge-warn',chuyen_di:'badge-gray'};
+  
+  document.getElementById('nhanKhauBody').innerHTML = safeNk.length === 0 
+    ? '<tr><td colspan="6" style="text-align:center;color:var(--muted)">Không có dữ liệu</td></tr>'
+    : safeNk.map((n,i) => `
+    <tr>
+      <td style="color:var(--muted)">${i+1}</td>
+      <td><b>${n.hoTen}</b></td>
+      <td>${n.ngaySinh}</td>
+      <td>${n.gioiTinh==='nam'?'👨 Nam':'👩 Nữ'}</td>
+      <td>${quanHeLabel[n.quanHe]||n.quanHe}</td>
+      <td><span class="badge ${ttNKCls[n.trangThai]||'badge-primary'}">${ttNKLabel[n.trangThai]||n.trangThai}</span></td>
+    </tr>
+  `).join('');
+
+  // Render Xe cộ
+  const safeXe = xe || [];
+  const loaiXeLabel = {xe_may:'🏍️ Xe máy',o_to:'🚗 Ô tô',xe_dap_dien:'⚡ Xe đạp điện'};
+  document.getElementById('soXeCount').textContent = safeXe.length;
+  
+  document.getElementById('xeBody').innerHTML = safeXe.length === 0
+    ? '<tr><td colspan="5" style="text-align:center;color:var(--muted)">Chưa đăng ký phương tiện nào</td></tr>'
+    : safeXe.map((x,i) => `
+    <tr>
+      <td style="color:var(--muted)">${i+1}</td>
+      <td><b style="letter-spacing:1px">${x.bienSo}</b></td>
+      <td>${loaiXeLabel[x.loaiXe]||x.loaiXe}</td>
+      <td>${x.hangXe||'—'} ${x.mauXe?'/ '+x.mauXe:''}</td>
+      <td><b style="color:var(--primary)">${(x.phi||0).toLocaleString('vi-VN')}đ/tháng</b></td>
+    </tr>
+  `).join('');
+}
+
+loadData();
+</script>
+</body>
+</html>

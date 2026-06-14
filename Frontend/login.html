@@ -1,373 +1,181 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Đăng Nhập – Quản Lý Hộ Dân</title>
-    <style>
-      *,
-      *::before,
-      *::after {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-      :root {
-        --primary: #1b4f72;
-        --primary-light: #2e86c1;
-        --primary-pale: #d6eaf8;
-        --accent: #f39c12;
-        --danger: #c0392b;
-        --danger-bg: #fadbd8;
-        --border: #d5dbdb;
-        --text: #1a252f;
-        --muted: #5d6d7e;
-      }
-      body {
-        font-family: "Segoe UI", sans-serif;
-        background: linear-gradient(135deg, #1b4f72 0%, #2e86c1 100%);
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .login-wrap {
-        width: 400px;
-        background: #fff;
-        border-radius: 16px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
-        overflow: hidden;
-      }
-      .login-top {
-        background: var(--primary);
-        padding: 32px;
-        text-align: center;
-      }
-      .login-icon {
-        width: 60px;
-        height: 60px;
-        background: var(--accent);
-        border-radius: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 28px;
-        margin: 0 auto 14px;
-      }
-      .login-top h1 {
-        font-size: 18px;
-        font-weight: 700;
-        color: #fff;
-        margin-bottom: 4px;
-      }
-      .login-top p {
-        font-size: 12px;
-        color: rgba(255, 255, 255, 0.6);
-      }
-      .login-body {
-        padding: 28px;
-      }
-      .form-group {
-        margin-bottom: 16px;
-      }
-      .form-label {
-        display: block;
-        font-size: 12.5px;
-        font-weight: 600;
-        color: var(--text);
-        margin-bottom: 5px;
-      }
-      .form-label .req {
-        color: var(--danger);
-      }
-      .input-wrap {
-        position: relative;
-      }
-      .input-wrap .ico {
-        position: absolute;
-        left: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 14px;
-        color: var(--muted);
-      }
-      .form-control {
-        width: 100%;
-        height: 38px;
-        border: 1.5px solid var(--border);
-        border-radius: 7px;
-        padding: 0 10px 0 34px;
-        font-size: 13px;
-        font-family: inherit;
-        color: var(--text);
-        outline: none;
-        transition: border-color 0.15s;
-      }
-      .form-control:focus {
-        border-color: var(--primary);
-        box-shadow: 0 0 0 3px rgba(27, 79, 114, 0.1);
-      }
-      .form-control.error {
-        border-color: var(--danger);
-      }
-      .form-error {
-        font-size: 11px;
-        color: var(--danger);
-        margin-top: 3px;
-        display: none;
-      }
-      .show-error {
-        display: block;
-      }
-      .pass-toggle {
-        position: absolute;
-        right: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-        background: none;
-        border: none;
-        cursor: pointer;
-        font-size: 14px;
-        color: var(--muted);
-      }
-      .remember-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 20px;
-      }
-      .remember-row label {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 12.5px;
-        color: var(--muted);
-        cursor: pointer;
-      }
-      .forgot {
-        font-size: 12.5px;
-        color: var(--primary);
-        text-decoration: none;
-      }
-      .forgot:hover {
-        text-decoration: underline;
-      }
-      .btn-login {
-        width: 100%;
-        height: 40px;
-        background: var(--primary);
-        color: #fff;
-        border: none;
-        border-radius: 7px;
-        font-size: 14px;
-        font-weight: 700;
-        font-family: inherit;
-        cursor: pointer;
-        transition: background 0.15s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-      }
-      .btn-login:hover {
-        background: var(--primary-light);
-      }
-      .btn-login:disabled {
-        background: #ccc;
-        cursor: not-allowed;
-      }
-      .alert {
-        padding: 10px 14px;
-        border-radius: 7px;
-        font-size: 12.5px;
-        margin-bottom: 14px;
-        display: none;
-      }
-      .alert.error {
-        background: var(--danger-bg);
-        color: var(--danger);
-        border: 1px solid #f1948a;
-        display: flex;
-        gap: 8px;
-      }
-      .login-foot {
-        padding: 16px 28px;
-        background: #f8fafc;
-        border-top: 1px solid var(--border);
-        text-align: center;
-        font-size: 11.5px;
-        color: var(--muted);
-      }
-      .login-foot b {
-        color: var(--primary);
-      }
-      .spinner {
-        width: 16px;
-        height: 16px;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-top-color: #fff;
-        border-radius: 50%;
-        animation: spin 0.7s linear infinite;
-      }
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="login-wrap">
-      <div class="login-top">
-        <div class="login-icon">🏢</div>
-        <h1>Quản Lý Hộ Dân & Thu Phí</h1>
-        <p>Đăng nhập để truy cập hệ thống</p>
-      </div>
-      <div class="login-body">
-        <!-- Alert lỗi từ server -->
-        <div class="alert error" id="alertError">
-          ⚠️ <span id="alertMsg">Tên đăng nhập hoặc mật khẩu không đúng!</span>
-        </div>
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Đăng Nhập – Quản Lý Hộ Dân</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--primary:#1B4F72;--primary-light:#2E86C1;--accent:#F39C12;--danger:#C0392B;--danger-bg:#FADBD8;--border:#D5DBDB;--text:#1A252F;--muted:#5D6D7E;}
+body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#1B4F72 0%,#2E86C1 100%);min-height:100vh;display:flex;align-items:center;justify-content:center}
+.login-wrap{width:420px;background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.25);overflow:hidden}
+.login-top{background:var(--primary);padding:32px;text-align:center}
+.login-icon{width:60px;height:60px;background:var(--accent);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 14px}
+.login-top h1{font-size:18px;font-weight:700;color:#fff;margin-bottom:4px}
+.login-top p{font-size:12px;color:rgba(255,255,255,.6)}
+.login-body{padding:24px 28px}
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:12.5px;font-weight:600;color:var(--text);margin-bottom:5px}
+.req{color:var(--danger)}
+.input-wrap{position:relative}
+.ico{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--muted)}
+.form-control{width:100%;height:38px;border:1.5px solid var(--border);border-radius:7px;padding:0 10px 0 34px;font-size:13px;font-family:inherit;color:var(--text);outline:none;transition:border-color .15s}
+.form-control:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(27,79,114,.1)}
+.form-control.error{border-color:var(--danger)}
+.form-error{font-size:11px;color:var(--danger);margin-top:3px;display:none}
+.form-error.show{display:block}
+.pass-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:14px;color:var(--muted)}
+.remember-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.remember-row label{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.forgot{font-size:12.5px;color:var(--primary);text-decoration:none}
+.btn-login{width:100%;height:40px;background:var(--primary);color:#fff;border:none;border-radius:7px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s}
+.btn-login:hover{background:var(--primary-light)}
+.btn-login:disabled{background:#ccc;cursor:not-allowed}
+.alert{padding:10px 14px;border-radius:7px;font-size:12.5px;margin-bottom:12px;display:none;gap:8px;align-items:center}
+.alert.error{background:var(--danger-bg);color:var(--danger);border:1px solid #F1948A;display:flex}
+.login-foot{padding:14px 28px;background:#F8FAFC;border-top:1px solid var(--border);text-align:center;font-size:11.5px;color:var(--muted)}
+.login-foot b{color:var(--primary)}
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.demo-hint{background:#EEF2F7;border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:11.5px;color:var(--muted)}
+.demo-hint b{color:var(--primary)}
+.demo-accounts{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+.demo-btn{background:none;border:1px solid var(--border);border-radius:5px;padding:5px 8px;font-size:11px;cursor:pointer;color:var(--text);font-family:inherit;text-align:left;transition:all .12s}
+.demo-btn:hover{border-color:var(--primary);background:var(--primary);color:#fff}
+</style>
+</head>
+<body>
+<div class="login-wrap">
+  <div class="login-top">
+    <div class="login-icon">🏢</div>
+    <h1>Quản Lý Hộ Dân & Thu Phí</h1>
+    <p>Đăng nhập để truy cập hệ thống</p>
+  </div>
+  <div class="login-body">
+    <div class="alert error" id="alertError">⚠️ <span id="alertMsg"></span></div>
 
-        <form id="loginForm" novalidate>
-          <div class="form-group">
-            <label class="form-label"
-              >Tên đăng nhập <span class="req">*</span></label
-            >
-            <div class="input-wrap">
-              <span class="ico">👤</span>
-              <input
-                type="text"
-                id="username"
-                class="form-control"
-                placeholder="Nhập tên đăng nhập"
-              />
-            </div>
-            <div class="form-error" id="err-username">
-              Vui lòng nhập tên đăng nhập
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label"
-              >Mật khẩu <span class="req">*</span></label
-            >
-            <div class="input-wrap">
-              <span class="ico">🔒</span>
-              <input
-                type="password"
-                id="password"
-                class="form-control"
-                placeholder="Nhập mật khẩu"
-              />
-              <button
-                type="button"
-                class="pass-toggle"
-                id="passToggle"
-                onclick="togglePass()"
-              >
-                👁
-              </button>
-            </div>
-            <div class="form-error" id="err-password">
-              Vui lòng nhập mật khẩu
-            </div>
-          </div>
-
-          <div class="remember-row">
-            <label
-              ><input type="checkbox" id="remember" /> Ghi nhớ đăng nhập</label
-            >
-            <a href="#" class="forgot">Quên mật khẩu?</a>
-          </div>
-
-          <button type="submit" class="btn-login" id="btnLogin">
-            <span id="btnText">Đăng nhập</span>
-          </button>
-        </form>
-      </div>
-      <div class="login-foot">
-        © 2026 <b>Nhóm 13</b> – Đồ án Công nghệ Phần mềm
+    <div class="demo-hint">
+      <b>🧪 Demo — Click để điền nhanh:</b>
+      <div class="demo-accounts">
+        <button class="demo-btn" onclick="fillDemo('admin','admin123')">👑 ADMIN — admin / admin123</button>
+        <button class="demo-btn" onclick="fillDemo('ketoan','ketoan123')">💼 KẾ TOÁN — ketoan / ketoan123</button>
+        <button class="demo-btn" onclick="fillDemo('cudan01','cudan123')">🏠 CƯ DÂN — cudan01 / cudan123</button>
       </div>
     </div>
 
-    <script>
-      // ===== VALIDATION =====
-      function validate() {
-        let ok = true;
-        const username = document.getElementById("username");
-        const password = document.getElementById("password");
+    <form id="loginForm" novalidate>
+      <div class="form-group">
+        <label class="form-label">Tên đăng nhập <span class="req">*</span></label>
+        <div class="input-wrap">
+          <span class="ico">👤</span>
+          <input type="text" id="username" class="form-control" placeholder="Nhập tên đăng nhập"/>
+        </div>
+        <div class="form-error" id="err-username">Vui lòng nhập tên đăng nhập</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mật khẩu <span class="req">*</span></label>
+        <div class="input-wrap">
+          <span class="ico">🔒</span>
+          <input type="password" id="password" class="form-control" placeholder="Nhập mật khẩu"/>
+          <button type="button" class="pass-toggle" onclick="togglePass()">👁</button>
+        </div>
+        <div class="form-error" id="err-password">Vui lòng nhập mật khẩu</div>
+      </div>
+      <div class="remember-row">
+        <label><input type="checkbox" id="remember"/> Ghi nhớ đăng nhập</label>
+        <a href="#" class="forgot">Quên mật khẩu?</a>
+      </div>
+      <button type="submit" class="btn-login" id="btnLogin">
+        <span id="btnText">Đăng nhập</span>
+      </button>
+    </form>
+  </div>
+  <div class="login-foot">© 2026 <b>Nhóm 13</b> – Đồ án Công nghệ Phần mềm</div>
+</div>
 
-        // Reset
-        username.classList.remove("error");
-        password.classList.remove("error");
-        document.getElementById("err-username").classList.remove("show-error");
-        document.getElementById("err-password").classList.remove("show-error");
+<script>
+const API = 'http://localhost:8080/api';
 
-        if (!username.value.trim()) {
-          username.classList.add("error");
-          document.getElementById("err-username").classList.add("show-error");
-          ok = false;
-        }
-        if (!password.value.trim()) {
-          password.classList.add("error");
-          document.getElementById("err-password").classList.add("show-error");
-          ok = false;
-        }
-        return ok;
-      }
+// Đã login rồi thì redirect luôn
+const existingToken = localStorage.getItem('token');
+if (existingToken) {
+  const u = JSON.parse(localStorage.getItem('user') || '{}');
+  redirectByRole(u.role);
+}
 
-      // ===== TOGGLE PASSWORD =====
-      function togglePass() {
-        const p = document.getElementById("password");
-        p.type = p.type === "password" ? "text" : "password";
-      }
+function redirectByRole(role) {
+  window.location.href = role === 'CU_DAN' ? 'cu-dan-nha-toi.html' : 'dashboard.html';
+}
 
-      // ===== SUBMIT & GỌI API =====
-      document
-        .getElementById("loginForm")
-        .addEventListener("submit", async function (e) {
-          e.preventDefault();
-          if (!validate()) return;
+function fillDemo(user, pass) {
+  document.getElementById('username').value = user;
+  document.getElementById('password').value = pass;
+}
 
-          const btn = document.getElementById("btnLogin");
-          const btnText = document.getElementById("btnText");
-          btn.disabled = true;
-          btnText.innerHTML = '<div class="spinner"></div> Đang đăng nhập...';
-          document.getElementById("alertError").style.display = "none";
+function togglePass() {
+  const p = document.getElementById('password');
+  p.type = p.type === 'password' ? 'text' : 'password';
+}
 
-          try {
-            const res = await fetch("http://localhost:8080/api/auth/login", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              // Chỉ cần 1 dòng chữ body và dùng tiếng Anh:
-              body: JSON.stringify({
-                username: document.getElementById("username").value.trim(),
-                password: document.getElementById("password").value,
-              }),
-            });
+function validate() {
+  let ok = true;
+  ['username','password'].forEach(id => {
+    const el = document.getElementById(id);
+    const err = document.getElementById('err-' + id);
+    el.classList.remove('error'); err.classList.remove('show');
+    if (!el.value.trim()) { el.classList.add('error'); err.classList.add('show'); ok = false; }
+  });
+  return ok;
+}
 
-            const data = await res.json();
-            if (res.ok && data.token) {
-              // TODO: Đồ án lưu localStorage cho tiện demo. Lên Production cần dùng httpOnly Cookie để chống XSS.
-              localStorage.setItem("token", data.token);
-              localStorage.setItem("user", JSON.stringify(data.user));
-              window.location.href = "ho-dan.html";
-            } else {
-              // BỎ CÁI DẤU } BỊ THỪA Ở ĐÂY ĐI
-              document.getElementById("alertMsg").textContent =
-                data.message || "Tên đăng nhập hoặc mật khẩu không đúng!";
-              document.getElementById("alertError").style.display = "flex";
-            }
-          } catch (err) {
-            document.getElementById("alertMsg").textContent =
-              "Không thể kết nối đến server. Vui lòng thử lại!";
-            document.getElementById("alertError").style.display = "flex";
-          } finally {
-            btn.disabled = false;
-            btnText.textContent = "Đăng nhập";
-          }
-        });
-    </script>
-  </body>
+const DEMO_ACCOUNTS = {
+  'admin':   { role:'ADMIN',   hoTen:'Quản trị viên', username:'admin' },
+  'ketoan':  { role:'KE_TOAN', hoTen:'Kế toán',       username:'ketoan' },
+  'cudan01': { role:'CU_DAN',  hoTen:'Nguyễn Văn An', username:'cudan01', hoDanId:'1' },
+};
+
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  if (!validate()) return;
+  const btn = document.getElementById('btnLogin');
+  const btnText = document.getElementById('btnText');
+  btn.disabled = true;
+  btnText.innerHTML = '<div class="spinner"></div> Đang đăng nhập...';
+  document.getElementById('alertError').style.display = 'none';
+
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+
+  try {
+    const res = await fetch(`${API}/auth/login`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ username, password })
+    });
+    if (!res.ok) throw new Error('Unauthorized');
+    const data = await res.json();
+    // ✅ Lưu Token + Role + User vào localStorage
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('role',  data.user.role);
+    localStorage.setItem('user',  JSON.stringify(data.user));
+    redirectByRole(data.user.role);
+  } catch {
+    // Demo fallback khi chưa có backend
+    const demoUser = DEMO_ACCOUNTS[username];
+    if (demoUser && password.length >= 6) {
+      localStorage.setItem('token', 'demo-token-' + Date.now());
+      localStorage.setItem('role',  demoUser.role);
+      localStorage.setItem('user',  JSON.stringify(demoUser));
+      redirectByRole(demoUser.role);
+    } else {
+      document.getElementById('alertMsg').textContent = 'Tên đăng nhập hoặc mật khẩu không đúng!';
+      document.getElementById('alertError').style.display = 'flex';
+    }
+  } finally {
+    btn.disabled = false;
+    btnText.textContent = 'Đăng nhập';
+  }
+});
+</script>
+</body>
 </html>
