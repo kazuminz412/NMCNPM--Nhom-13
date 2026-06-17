@@ -55,4 +55,5 @@ public class NhanKhauController {
             return ResponseEntity.badRequest().body(Map.of("message", "Không thể xóa nhân khẩu này!"));
         }
     }
+
 }

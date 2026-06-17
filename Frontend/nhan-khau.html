@@ -262,13 +262,14 @@ async function loadNhanKhau() {
 }
 
 // ===== RENDER BẢNG =====
+// ===== RENDER BẢNG (ĐÃ SỬA LỖI HIỂN THỊ) =====
 function renderTable(data) {
   document.getElementById('showCount').textContent = data.length;
   document.getElementById('totalCount').textContent = allData.length;
 
   if (!data.length) {
     document.getElementById('tableBody').innerHTML =
-      '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">Không có dữ liệu</td></tr>';
+            '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">Không có dữ liệu</td></tr>';
     return;
   }
 
@@ -276,11 +277,15 @@ function renderTable(data) {
     <tr>
       <td style="color:var(--muted)">${String(i+1).padStart(3,'0')}</td>
       <td><b>${nk.hoTen}</b></td>
-      <td>${nk.ngaySinh}</td>
-      <td>${nk.gioiTinh === 'nam' ? '👨 Nam' : '👩 Nữ'}</td>
-      <td>${nk.tenChuHo} – ${nk.canHo}</td>
-      <td>${quanHeLabel(nk.quanHe)}</td>
-      <td>${badgeHTML(nk.trangThai)}</td>
+      <td>${nk.ngaySinh || ''}</td>
+      <td>${(nk.gioiTinh === 'nam' || nk.gioiTinh === 'Nam') ? '👨 Nam' : (nk.gioiTinh === 'nu' || nk.gioiTinh === 'Nu' ? '👩 Nữ' : 'Khác')}</td>
+
+      <td>${hienThiHoDan(nk)}</td>
+
+      <td>${quanHeLabel(nk.quanHeChuHo || nk.quanHe || '')}</td>
+
+      <td>${dichTrangThai(nk.trangThaiCuTru || nk.trangThai)}</td>
+
       <td style="display:flex;gap:4px">
         <button class="abtn" onclick='openModal("view", ${JSON.stringify(nk).replace(/"/g,"&quot;")})'>👁</button>
         <button class="abtn" onclick='openModal("edit", ${JSON.stringify(nk).replace(/"/g,"&quot;")})'>✏️</button>
@@ -289,6 +294,7 @@ function renderTable(data) {
     </tr>
   `).join('');
 }
+
 
 function quanHeLabel(qh) {
   const map = { chu_ho:'Chủ hộ', vo_chong:'Vợ/Chồng', con:'Con', cha_me:'Cha/Mẹ', khac:'Khác' };
@@ -363,7 +369,30 @@ function closeModal() {
   document.querySelectorAll('.error').forEach(e => e.classList.remove('error'));
   document.querySelectorAll('.show-error').forEach(e => e.classList.remove('show-error'));
 }
+// Thêm hàm này để dịch trạng thái từ Backend sang Tiếng Việt cho đẹp
+function dichTrangThai(trangThai) {
+  const tuDien = {
+    'THUONG_TRU': '<b style="color: #27ae60;">Thường trú</b>',
+    'TAM_TRU': '<b style="color: #f39c12;">Tạm trú</b>',
+    'TAM_VANG': '<b style="color: #7f8c8d;">Tạm vắng</b>',
+    'DA_CHUYEN_DI': '<b style="color: #c0392b;">Đã chuyển đi</b>'
+  };
+  return tuDien[trangThai] || trangThai;
+}
 
+// Thêm hàm này để xử lý lỗi undefined của Hộ dân
+function hienThiHoDan(item) {
+  // Nếu Backend trả về object hoDan có tòa nhà và số phòng
+  if (item.hoDan && item.hoDan.toaNha && item.hoDan.soPhong) {
+    return `${item.hoDan.toaNha} - ${item.hoDan.soPhong}`;
+  }
+  // Nếu Backend trả về object hoGiaDinh (tùy tên nhóm bạn đặt)
+  if (item.hoGiaDinh && item.hoGiaDinh.toaNha && item.hoGiaDinh.soPhong) {
+    return `${item.hoGiaDinh.toaNha} - ${item.hoGiaDinh.soPhong}`;
+  }
+  // Lỡ người này chưa được xếp vào nhà nào
+  return '<span style="color: gray;">Chưa có hộ</span>';
+}
 // ===== VALIDATION =====
 function validate() {
   let ok = true;
