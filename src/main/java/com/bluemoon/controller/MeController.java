@@ -1,5 +1,8 @@
 package com.bluemoon.controller;
 
+import com.bluemoon.repository.HoDanRepository;
+import com.bluemoon.repository.NhanKhauRepository;
+import com.bluemoon.repository.PhuongTienRepository;
 import com.bluemoon.security.JwtUtils;
 import com.bluemoon.service.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,6 +22,9 @@ public class MeController {
     private final HoaDonService hoaDonService;
     private final PhuongTienService phuongTienService;
     private final NhanKhauService nhanKhauService;
+    private final HoDanRepository hoDanRepository;
+    private final NhanKhauRepository nhanKhauRepository;
+    private final PhuongTienRepository phuongTienRepository;
 
     // Hàm nội bộ: Rút trích an toàn hoDanId từ Token
     private Long getHoDanId(HttpServletRequest request) {
@@ -34,19 +40,19 @@ public class MeController {
     // 1. LẤY THÔNG TIN GỐC CỦA HỘ DÂN
     @GetMapping("/ho-dan")
     public ResponseEntity<?> getThongTinNhaToi(HttpServletRequest request) {
-        return ResponseEntity.ok(hoDanService.timTheoId(getHoDanId(request)));
+        return ResponseEntity.ok(hoDanRepository.findById(getHoDanId(request)));
     }
 
     // 2. LẤY DANH SÁCH NHÂN KHẨU
     @GetMapping("/nhan-khau")
     public ResponseEntity<?> getNhanKhauCuaToi(HttpServletRequest request) {
-        return ResponseEntity.ok(nhanKhauService.findByHoDanId(getHoDanId(request)));
+        return ResponseEntity.ok(nhanKhauRepository.findByHoDanId(getHoDanId(request)));
     }
 
     // 3. LẤY DANH SÁCH PHƯƠNG TIỆN
     @GetMapping("/phuong-tien")
     public ResponseEntity<?> getPhuongTienCuaToi(HttpServletRequest request) {
-        return ResponseEntity.ok(phuongTienService.findByHoDanId(getHoDanId(request)));
+        return ResponseEntity.ok(phuongTienRepository.findByHoDanId(getHoDanId(request)));
     }
 
     // 4. LẤY LỊCH SỬ HÓA ĐƠN (Hỗ trợ lọc theo tháng)

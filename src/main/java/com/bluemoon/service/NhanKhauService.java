@@ -31,7 +31,7 @@ public class NhanKhauService {
         if (nhanKhau.getHoDanId() != null) {
             HoDan hoDan = hoDanRepository.findById(nhanKhau.getHoDanId())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy Hộ gia đình để thêm vào!"));
-            nhanKhau.setHoDanh(hoDanh);
+            nhanKhau.setHoDan(hoDan);
         } else {
             throw new RuntimeException("Phải chọn Hộ gia đình cho nhân khẩu này!");
         }
@@ -56,13 +56,12 @@ public class NhanKhauService {
         existing.setSoDienThoai(details.getSoDienThoai());
         existing.setQuanHe(details.getQuanHe());
         existing.setTrangThai(details.getTrangThai());
-        existing.setGhiChu(details.getGhiChu());
 
         if (details.getHoDanId() != null && 
-           (existing.getHoGiaDinh() == null || !existing.getHoGiaDinh().getId().equals(details.getHoDanId()))) {
-            HoGiaDinh hoGiaDinhMoi = hoGiaDinhRepository.findById(details.getHoDanId())
+           (existing.getHoDan() == null || !existing.getHoDan().getId().equals(details.getHoDanId()))) {
+            HoDan HoDanMoi = hoDanRepository.findById(details.getHoDanId())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy Hộ gia đình mới!"));
-            existing.setHoGiaDinh(hoGiaDinhMoi);
+            existing.setHoDan(HoDanMoi);
         }
         
         return nhanKhauRepository.save(existing);

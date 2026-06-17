@@ -1,6 +1,7 @@
 package com.bluemoon.model;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "phuong_tien")

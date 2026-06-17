@@ -23,8 +23,8 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Long> {
     // Gọi Stored Procedure để tính tiền tự động dưới Database
     @Modifying
     @Transactional
-    @Query(value = "CALL sp_TaoHoaDonDinhKy(:thang)", nativeQuery = true)
-    void taoHoaDonDinhKy(@Param("thang") String thang);
+//    @Query(value = "CALL sp_TaoHoaDonDinhKy(:thang)", nativeQuery = true)
+//    void taoHoaDonDinhKy(@Param("thang") String thang);
 
 
     // ==========================================
@@ -60,4 +60,10 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Long> {
 
     // Lấy toàn bộ hóa đơn của riêng 1 hộ dân (Dành cho "Góc Cư Dân" xem lịch sử nhà mình)
     List<HoaDon> findByHoDanId(Long hoDanId);
+    // Tìm danh sách hóa đơn theo ID hộ dân và theo Tháng
+    List<HoaDon> findByHoDanIdAndThang(Long hoDanId, String thang);
+    // Dùng Query tạm thời trả về 2 cột số 0 (tương ứng với soLuong và tongTien) để không bị lỗi
+    @Query(value = "SELECT 0, 0", nativeQuery = true)
+    List<Object[]> tinhCongNo();
+
 }

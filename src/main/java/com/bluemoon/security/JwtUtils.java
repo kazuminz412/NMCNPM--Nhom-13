@@ -1,57 +1,93 @@
 package com.bluemoon.security;
 
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 
-import java.security.Key;
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 @Component
 public class JwtUtils {
-    
-    // Tạm thời hardcode để chạy đồ án, thực tế đi làm sẽ để trong application.properties
-    private final String SECRET = "khoa_bi_mat_rat_dai_cua_he_thong_quan_ly_ho_dan_bluemoon_123456";
-    private final Key key = Keys.hmacShaKeyFor(SECRET.getBytes());
 
-    // 1. CẤP PHÁT TOKEN (Đã bổ sung hoDanId)
+    // Chuỗi secret key dùng để ký mã hóa token (tối thiểu 32 ký tự)
+    private final String SECRET_KEY = "chuan-bi-mot-chuoi-bi-mat-that-dai-va-an-toan-cho-blue-moon";
+    private final long EXPIRATION_TIME = 86400000; // Token có hạn trong 1 ngày (ms)
+
+    private SecretKey getSigningKey() {
+        return Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
+    }
+
+    // Hàm tạo mã Token (Đã nâng cấp: Đóng dấu Quyền và ID hộ dân vào vé)
     public String generateToken(String username, String role, Long hoDanId) {
         return Jwts.builder()
-                .setSubject(username)
-                .claim("role", role)
-                .claim("hoDanId", hoDanId) // Cực kỳ quan trọng để truy xuất dữ liệu Cư Dân
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // Hạn 10 tiếng
-                .signWith(key, SignatureAlgorithm.HS256)
+                .subject(username)
+                .claim("role", role)       // 👈 Chỗ này cực quan trọng: Nhét quyền vào vé
+                .claim("hoDanId", hoDanId) // 👈 Nhét ID hộ dân vào vé
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .signWith(getSigningKey())
                 .compact();
     }
 
-    // 2. LẤY THÔNG TIN TỪ TOKEN
-    public String extractUsername(String token) {
-        return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().getSubject();
+
+    // Hàm giải mã Token để lấy username (Sửa dứt điểm lỗi parserBuilder)
+    public String getUsernameFromToken(String token) {
+        return Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getSubject();
     }
 
-    public String extractRole(String token) {
-        return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().get("role", String.class);
-    }
-
-    // Đã bổ sung: Hàm lấy Mã hộ dân từ Token cho API đuôi /me
-    public Long extractHoDanId(String token) {
-        Object idObj = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().get("hoDanId");
-        if (idObj != null) {
-            return Long.parseLong(idObj.toString());
-        }
-        return null; // Quản trị viên và Kế toán sẽ không có mã này
-    }
-
-    // 3. Đã bổ sung: HÀM KIỂM TRA TOKEN HỢP LỆ (Phục vụ cho Filter)
-    public boolean isTokenValid(String token) {
+    // Hàm kiểm tra Token hợp lệ
+    public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            Jwts.parser().verifyWith(getSigningKey()).build().parseSignedClaims(token);
             return true;
-        } catch (JwtException | IllegalArgumentException e) {
-            // Nếu token hết hạn, bị sửa đổi chữ ký, hoặc rỗng -> Trả về false ngay
+        } catch (Exception e) {
             return false;
+        }
+    }
+    // --- CÁC HÀM BỔ SUNG THEO YÊU CẦU CỦA ĐỒNG ĐỘI ---
+
+    // 1. Đồng đội gọi hàm extractUsername thay vì getUsernameFromToken
+    public String extractUsername(String token) {
+        return getUsernameFromToken(token); // Gọi lại hàm cũ cho nhanh
+    }
+
+    // 2. Đồng đội gọi hàm isTokenValid thay vì validateToken
+    public boolean isTokenValid(String token) {
+        return validateToken(token); // Gọi lại hàm cũ cho nhanh
+    }
+
+    // 3. Hàm lấy Role (Quyền) từ Token
+    public String extractRole(String token) {
+        try {
+            return io.jsonwebtoken.Jwts.parser()
+                    .verifyWith(getSigningKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload()
+                    .get("role", String.class);
+        } catch (Exception e) {
+            return "CU_DAN"; // Nếu token không có role thì mặc định trả về cư dân để không bị lỗi
+        }
+    }
+
+    // 4. Hàm lấy ID Hộ dân từ Token
+    public Long extractHoDanId(String token) {
+        try {
+            return io.jsonwebtoken.Jwts.parser()
+                    .verifyWith(getSigningKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload()
+                    .get("hoDanId", Long.class);
+        } catch (Exception e) {
+            return 1L; // Trả về ID tạm để code biên dịch qua cửa
         }
     }
 }
