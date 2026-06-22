@@ -97,40 +97,7 @@
     </header>
 
     <!-- SIDEBAR -->
-    <aside>
-      <div class="nav-sec">
-        <span class="nav-lbl">Tổng quan</span
-        ><a href="dashboard.html" class="nav-a">📊 Bảng điều khiển</a>
-      </div>
-      <div class="ndiv"></div>
-      <div class="nav-sec">
-        <span class="nav-lbl">Quản lý dân cư</span>
-        <a href="ho-dan.html" class="nav-a active"
-          >🏠 Hộ dân <span class="nbadge">248</span></a
-        >
-        <a href="nhan-khau.html" class="nav-a">👥 Nhân khẩu</a>
-        <a href="tam-tru.html" class="nav-a">📋 Tạm trú / Tạm vắng</a>
-      </div>
-      <div class="ndiv"></div>
-      <div class="nav-sec">
-        <span class="nav-lbl">Tài chính</span>
-        <a href="danh-muc-phi.html" class="nav-a">💲 Danh mục khoản phí</a>
-        <a href="hoa-don.html" class="nav-a">🧾 Hóa đơn</a>
-        <a href="khoan-thu.html" class="nav-a">💳 Khoản thu</a>
-        <a href="thu-phi.html" class="nav-a"
-          >💰 Thu phí <span class="nbadge red">5</span></a
-        >
-        <a href="lich-su.html" class="nav-a">📜 Lịch sử giao dịch</a>
-      </div>
-      <div class="ndiv"></div>
-      <div class="nav-sec">
-        <span class="nav-lbl">Báo cáo</span
-        ><a href="thong-ke.html" class="nav-a">📈 Thống kê</a>
-      </div>
-      <div class="sidebar-foot">
-        <button class="logout" onclick="handleLogout()">🚪 Đăng xuất</button>
-      </div>
-    </aside>
+    <aside></aside>
 
     <!-- MAIN -->
     <main>
@@ -207,7 +174,7 @@
     <!-- FOOTER -->
     <footer>
       <p>
-        © 2026 <b>Hệ Thống Quản Lý Hộ Dân & Thu Phí</b> — Đồ án Công nghệ Phần
+        © 2026 <b>Hệ Thống Quản Lý Hộ Dân &amp; Thu Phí</b> — Đồ án Công nghệ Phần
         mềm – Nhóm 13
       </p>
       <div class="flinks"><span>Hướng dẫn</span><span>Hỗ trợ</span></div>
@@ -272,18 +239,18 @@
               </div>
               <div class="form-group">
                 <label class="form-label"
-                  >Số nhân khẩu <span class="required">*</span></label
+                  >Số nhân khẩu <span style="font-size:11px;color:var(--muted);font-weight:normal">(tự động đếm)</span></label
                 >
                 <input
                   type="text"
                   id="soNhanKhau"
                   class="form-control"
-                  placeholder="4"
-                  oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                  placeholder="0"
+                  readonly
+                  style="background:#f0f0f0; cursor:not-allowed;"
+                  title="Số nhân khẩu được tính tự động từ danh sách nhân khẩu"
                 />
-                <div class="form-error" id="err-soNhanKhau">
-                  Vui lòng nhập số nhân khẩu
-                </div>
+                <div style="font-size:11px;color:var(--muted);margin-top:4px">Vào mục Nhân khẩu để thêm/xóa thành viên</div>
               </div>
             </div>
             <div class="form-row">
@@ -318,77 +285,114 @@
         </div>
         <div class="modal-foot">
           <button class="btn btn-outline" onclick="closeModal()">Hủy</button>
-          <button class="btn btn-primary" onclick="submitForm()">💾 Lưu</button>
+          <button class="btn btn-primary" id="btnSave" onclick="submitForm()">💾 Lưu</button>
         </div>
       </div>
     </div>
 
+    <!-- LOAD common.js TRƯỚC để có API và token -->
+    <script src="common.js"></script>
+    <script src="auth.js"></script>
+
     <script>
+      AUTH.init('hodan');
+      let allData = [];
+      let currentData = [];
+      let currentPage = 1;
+      const itemsPerPage = 5;
+
+      function renderPage(page) {
+          if (currentData.length === 0) {
+              renderTable([]);
+              renderPagination();
+              return;
+          }
+          if (page < 1 || page > Math.ceil(currentData.length / itemsPerPage)) return;
+          currentPage = page;
+          const start = (page - 1) * itemsPerPage;
+          const end = start + itemsPerPage;
+          const pageData = currentData.slice(start, end);
+          renderTable(pageData);
+          renderPagination();
+      }
+
+      function renderPagination() {
+        const totalPages = Math.ceil(currentData.length / itemsPerPage);
+        const container = document.querySelector('.pagination');
+        if (!container) return;
+        let html = `<button class="pg-btn" ${currentPage === 1 ? 'disabled style="opacity:0.5;pointer-events:none;"' : ''} onclick="renderPage(${currentPage - 1})">❮</button>`;
+        
+        const maxVisible = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+        let endPage = startPage + maxVisible - 1;
+        if (endPage > totalPages) {
+            endPage = totalPages;
+            startPage = Math.max(1, endPage - maxVisible + 1);
+        }
+
+        if (startPage > 1) {
+            html += `<button class="pg-btn" onclick="renderPage(1)">1</button>`;
+            if (startPage > 2) html += `<span style="color:var(--muted); margin:0 2px;">...</span>`;
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+          html += `<button class="pg-btn ${currentPage === i ? 'active' : ''}" onclick="renderPage(${i})">${i}</button>`;
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) html += `<span style="color:var(--muted); margin:0 2px;">...</span>`;
+            html += `<button class="pg-btn" onclick="renderPage(${totalPages})">${totalPages}</button>`;
+        }
+
+        html += `<button class="pg-btn" ${currentPage === totalPages || totalPages === 0 ? 'disabled style="opacity:0.5;pointer-events:none;"' : ''} onclick="renderPage(${currentPage + 1})">❯</button>`;
+        container.innerHTML = html;
+        
+        const showCountEl = document.getElementById("showCount");
+        if(showCountEl) showCountEl.textContent = Math.min(currentPage * itemsPerPage, currentData.length);
+        
+        const totalCountEl = document.getElementById("totalCount");
+        if(totalCountEl) totalCountEl.textContent = currentData.length;
+      }
+
       // ===== GỌI API LẤY DANH SÁCH =====
       async function loadHoDan() {
-        const tbody = document.getElementById("tblBody");
-        tbody.innerHTML =
-          '<tr><td colspan="6" style="text-align:center">Đang tải dữ liệu...</td></tr>'; // Thêm hiệu ứng loading
-
+        const tbody = document.getElementById("tableBody");
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center">Đang tải dữ liệu...</td></tr>';
         try {
-          const res = await fetch(`${API}/ho-dan`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          if (!res.ok) throw new Error("Lỗi API"); // Check lỗi crash mạng
-          const data = await res.json();
-
-          tbody.innerHTML = data
-            .map(
-              (h) => `
-      <tr>
-        <td><b>${h.maHoKhau}</b></td>
-        <td><b>${h.tenChuHo}</b></td> <td>${h.sdt}</td>
-        <td>${h.canHo}</td>
-        <td>${h.soNhanKhau} / ${h.dienTich}m²</td>
-        <td>
-          <button class="abtn" onclick="openModal('view', '${h.id}')">👁</button>
-          <button class="abtn" onclick="openModal('edit', '${h.id}')">✏️</button>
-        </td>
-      </tr>
-    `,
-            )
-            .join("");
+          const res = await fetch(`${API}/ho-dan`, { headers: { Authorization: `Bearer ${token}` } });
+          if (!res.ok) throw new Error("Lỗi API");
+          allData = await res.json();
+          currentData = allData;
+          renderPage(1);
         } catch (err) {
-          // Gọi mock data nếu server sập
+          allData = MOCK_DATA;
+          currentData = MOCK_DATA;
+          renderPage(1);
         }
       }
 
       // ===== RENDER BẢNG =====
       function renderTable(data) {
         const tbody = document.getElementById("tableBody");
-        document.getElementById("showCount").textContent = data.length;
-        document.getElementById("totalCount").textContent = data.length;
-
         if (!data.length) {
-          tbody.innerHTML =
-            '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted)">Không có dữ liệu</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted)">Không có dữ liệu</td></tr>';
           return;
         }
-
-        tbody.innerHTML = data
-          .map(
-            (h, i) => `
+        tbody.innerHTML = data.map((h, i) => `
     <tr>
-      <td style="color:var(--muted)">${String(i + 1).padStart(3, "0")}</td>
+      <td style="color:var(--muted)">${String((currentPage - 1) * itemsPerPage + i + 1).padStart(3, "0")}</td>
       <td><b>${h.tenChuHo}</b></td>
-      <td>${h.sdt}</td>
-      <td>${h.canHo}</td>
-      <td>${h.soNhanKhau} người</td>
-      <td>${badgeHTML(h.trangThai)}</td>
+      <td>${h.soDienThoai || ""}</td>
+      <td>${h.soPhong || ""}</td>
+      <td>${h.soNhanKhau || "0"} người</td>
+      <td>${badgeHTML(h.trangThai || "chua_dong")}</td>
       <td style="display:flex;gap:4px">
         <button class="abtn" onclick="openModal('view',${JSON.stringify(h).replace(/"/g, "&quot;")})">👁</button>
         <button class="abtn" onclick="openModal('edit',${JSON.stringify(h).replace(/"/g, "&quot;")})">✏️</button>
         <button class="abtn danger" onclick="deleteHoDan('${h.id}','${h.tenChuHo}')">🗑</button>
       </td>
     </tr>
-  `,
-          )
-          .join("");
+  `).join("");
       }
 
       function badgeHTML(tt) {
@@ -408,11 +412,11 @@
       // ===== LỌC BẢNG =====
       function filterTable() {
         const q = document.getElementById("searchInput").value.toLowerCase();
-        document.querySelectorAll("#tableBody tr").forEach((tr) => {
-          tr.style.display = tr.textContent.toLowerCase().includes(q)
-            ? ""
-            : "none";
-        });
+        currentData = allData.filter(h => 
+          (h.tenChuHo && h.tenChuHo.toLowerCase().includes(q)) ||
+          (h.soPhong && h.soPhong.toLowerCase().includes(q))
+        );
+        renderPage(1);
       }
 
       // ===== MODAL =====
@@ -426,19 +430,25 @@
               : "Chi tiết hộ dân";
         document.getElementById("hoDanId").value = data.id || "";
         document.getElementById("tenChuHo").value = data.tenChuHo || "";
-        document.getElementById("sdt").value = data.sdt || "";
-        document.getElementById("canHo").value = data.canHo || "";
+        document.getElementById("sdt").value = data.soDienThoai || "";
+        document.getElementById("canHo").value = data.soPhong || "";
         document.getElementById("soNhanKhau").value = data.soNhanKhau || "";
-        document.getElementById("dienTich").value = data.dienTich || "";
-        document.getElementById("diaChi").value = data.diaChi || "";
-        document.getElementById("trangThai").value =
-          data.trangThai || "chua_dong";
+        document.getElementById("dienTich").value = data.dienTichM2 || data.dienTich || "";
+        document.getElementById("diaChi").value = data.toaNha || data.diaChi || "";
+        document.getElementById("trangThai").value = data.trangThai || "chua_dong";
+        
         const readonly = mode === "view";
         document
           .querySelectorAll(
             "#hoDanForm input, #hoDanForm select, #hoDanForm textarea",
           )
           .forEach((el) => (el.disabled = readonly));
+        
+        // Ẩn nút Lưu khi chỉ xem
+        const btnSave = document.getElementById("btnSave");
+        if (btnSave) {
+          btnSave.style.display = readonly ? "none" : "inline-block";
+        }
       }
 
       function closeModal() {
@@ -457,7 +467,6 @@
           tenChuHo: (v) => v.trim().length > 0,
           sdt: (v) => /^0[0-9]{9}$/.test(v),
           canHo: (v) => v.trim().length > 0,
-          soNhanKhau: (v) => v > 0,
         };
         Object.entries(fields).forEach(([id, check]) => {
           const el = document.getElementById(id);
@@ -474,15 +483,23 @@
       async function submitForm() {
         if (!validate()) return;
         const id = document.getElementById("hoDanId").value;
+        const originalData = allData.find(h => String(h.id) === String(id)) || {};
         const body = {
+          id: originalData.id,
+          maHoKhau: originalData.maHoKhau,
+          ngayCapHoKhau: originalData.ngayCapHoKhau,
+          createdAt: originalData.createdAt,
+          updatedAt: originalData.updatedAt,
           tenChuHo: document.getElementById("tenChuHo").value.trim(),
-          sdt: document.getElementById("sdt").value,
-          canHo: document.getElementById("canHo").value.trim(),
+          soDienThoai: document.getElementById("sdt").value,
+          soPhong: document.getElementById("canHo").value.trim(),
           soNhanKhau: +document.getElementById("soNhanKhau").value,
-          dienTich: document.getElementById("dienTich").value,
-          diaChi: document.getElementById("diaChi").value.trim(),
-          trangThai: document.getElementById("trangThai").value,
+          dienTichM2: +document.getElementById("dienTich").value,
+          toaNha: document.getElementById("diaChi").value.trim(),
+          trangThai: document.getElementById("trangThai").value
         };
+        // Clean undefined properties so JSON.stringify omits them nicely
+        Object.keys(body).forEach(key => body[key] === undefined && delete body[key]);
         try {
           const method = id ? "PUT" : "POST";
           const url = id ? `${API}/ho-dan/${id}` : `${API}/ho-dan`;
@@ -498,7 +515,7 @@
             closeModal();
             loadHoDan();
             alert(id ? "Cập nhật thành công!" : "Thêm hộ dân thành công!");
-          } else alert("Có lỗi xảy ra!");
+          } else { const errTxt = await res.text(); console.error(errTxt); alert("Lỗi: " + errTxt); }
         } catch {
           alert("Không thể kết nối server!");
         }
@@ -522,15 +539,13 @@
         }
       }
 
-      // ===== ĐĂNG XUẤT =====
-
       // ===== DỮ LIỆU MẪU (khi chưa có backend) =====
       const MOCK_DATA = [
         {
           id: "1",
           tenChuHo: "Nguyễn Văn An",
-          sdt: "0912345678",
-          canHo: "A1-204",
+          soDienThoai: "0912345678",
+          soPhong: "A1-204",
           soNhanKhau: 4,
           dienTich: "65",
           diaChi: "204 Lô A1",
@@ -539,8 +554,8 @@
         {
           id: "2",
           tenChuHo: "Trần Thị Bình",
-          sdt: "0987654321",
-          canHo: "A1-310",
+          soDienThoai: "0987654321",
+          soPhong: "A1-310",
           soNhanKhau: 3,
           dienTich: "55",
           diaChi: "310 Lô A1",
@@ -549,8 +564,8 @@
         {
           id: "3",
           tenChuHo: "Lê Minh Châu",
-          sdt: "0901111222",
-          canHo: "B2-108",
+          soDienThoai: "0901111222",
+          soPhong: "B2-108",
           soNhanKhau: 2,
           dienTich: "48",
           diaChi: "108 Lô B2",
@@ -559,8 +574,8 @@
         {
           id: "4",
           tenChuHo: "Phạm Đức Dũng",
-          sdt: "0933777888",
-          canHo: "B2-205",
+          soDienThoai: "0933777888",
+          soPhong: "B2-205",
           soNhanKhau: 5,
           dienTich: "80",
           diaChi: "205 Lô B2",
@@ -569,8 +584,8 @@
         {
           id: "5",
           tenChuHo: "Hoàng Thị Lan",
-          sdt: "0966333444",
-          canHo: "C3-402",
+          soDienThoai: "0966333444",
+          soPhong: "C3-402",
           soNhanKhau: 3,
           dienTich: "60",
           diaChi: "402 Lô C3",
@@ -580,6 +595,5 @@
 
       loadHoDan();
     </script>
-    <script src="common.js"></script>
   </body>
 </html>

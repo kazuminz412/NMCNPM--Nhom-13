@@ -69,28 +69,7 @@
 
 <!-- SIDEBAR -->
 <aside>
-  <div class="nav-sec"><span class="nav-lbl">Tổng quan</span>
-    <a href="dashboard.html" class="nav-a">📊 Bảng điều khiển </a>
-  </div>
-  <div class="ndiv"></div>
-  <div class="nav-sec"><span class="nav-lbl">Quản lý dân cư</span>
-    <a href="ho-dan.html" class="nav-a">🏠 Hộ dân <span class="nbadge">248</span></a>
-    <a href="nhan-khau.html" class="nav-a">👥 Nhân khẩu </a>
-    <a href="phuong-tien.html" class="nav-a">🚗 Phương tiện </a>
-  </div>
-  <div class="ndiv"></div>
-  <div class="nav-sec"><span class="nav-lbl">Tài chính</span>
-    <a href="danh-muc-phi.html" class="nav-a">💲 Danh mục khoản phí </a>
-    <a href="hoa-don.html" class="nav-a active">🧾 Hóa đơn </a>
-    <a href="thanh-toan.html" class="nav-a">💳 Thanh toán </a>
-    <a href="khoan-thu.html" class="nav-a">📋 Khoản thu </a>
-    <a href="thu-phi.html" class="nav-a">💰 Thu phí <span class="nbadge red">5</span></a>
-    <a href="lich-su.html" class="nav-a">📜 Lịch sử giao dịch </a>
-  </div>
-  <div class="ndiv"></div>
-  <div class="nav-sec"><span class="nav-lbl">Báo cáo</span>
-    <a href="thong-ke.html" class="nav-a">📈 Thống kê </a>
-  </div>
+  
   <div class="sidebar-foot"><button class="logout" onclick="handleLogout()">🚪 Đăng xuất</button></div>
 </aside>
 
@@ -108,23 +87,16 @@
   <!-- Filter -->
   <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
     <input type="month" id="filterThang" class="form-control" style="width:160px" onchange="loadData()"/>
-    <select id="filterTrangThai" class="form-control" style="width:180px" onchange="loadData()">
-      <option value="">Tất cả trạng thái</option>
-      <option value="da_thanh_toan">Đã thanh toán</option>
-      <option value="chua_thanh_toan">Chưa thanh toán</option>
-    </select>
-    <input type="text" id="searchInput" class="form-control" style="width:220px"
-      placeholder="Tìm hộ dân, căn hộ..." oninput="filterTable()"/>
+    <input type="text" id="searchInput" class="form-control" placeholder="Tìm hộ dân, căn hộ..." style="width:250px" onkeyup="filterTable()">
   </div>
 
   <!-- Bảng hóa đơn -->
   <div class="card">
-    <div class="card-hdr">
-      <div class="card-ttl">🧾 Danh sách hóa đơn</div>
-      <span style="font-size:12px;color:var(--muted)">
-        <b id="countChuaTT" style="color:var(--danger)">0</b> chưa thanh toán /
-        <b id="countDaTT" style="color:var(--success)">0</b> đã thanh toán
-      </span>
+    <div class="card-header">
+      <div class="card-ttl">Danh sách hóa đơn (Chỉ hiển thị đã thanh toán)</div>
+      <div class="card-extra">
+        <span style="color:var(--success);font-weight:600"><span id="countDaTT">0</span> hóa đơn đã thanh toán</span>
+      </div>
     </div>
     <div class="tbl-wrap">
       <table>
@@ -241,43 +213,46 @@ async function loadData() {
     });
     if (!res.ok) throw new Error('API Error');
     allData = await res.json();
+    // Yêu cầu: phần hóa đơn chỉ hiển thị các hóa đơn đã thanh toán (bao gồm thanh toán một phần)
+    allData = allData.filter(d => d.trangThai === 'da_thanh_toan' || d.trangThai === 'mot_phan');
   } catch {
-    allData = MOCK_DATA;
+    allData = MOCK_DATA.filter(d => d.trangThai === 'da_thanh_toan' || d.trangThai === 'mot_phan');
   }
   renderTable(allData);
 }
 
 // ===== RENDER TABLE =====
 function renderTable(data) {
-  const tt = document.getElementById('filterTrangThai').value;
-  const filtered = tt ? data.filter(d => d.trangThai === tt) : data;
-
-  const chuaTT = filtered.filter(d => d.trangThai === 'chua_thanh_toan').length;
-  const daTT   = filtered.filter(d => d.trangThai === 'da_thanh_toan').length;
-  document.getElementById('countChuaTT').textContent = chuaTT;
-  document.getElementById('countDaTT').textContent   = daTT;
+  const filtered = data; // Already filtered
+  document.getElementById('countDaTT').textContent = filtered.length;
 
   if (!filtered.length) {
     document.getElementById('tableBody').innerHTML =
-      '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted)">Không có hóa đơn</td></tr>';
+      '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted)">Không có hóa đơn nào đã có thanh toán</td></tr>';
     return;
   }
 
-  document.getElementById('tableBody').innerHTML = filtered.map((hd, i) => `
+  document.getElementById('tableBody').innerHTML = filtered.map((hd, i) => {
+    let badgeClass = hd.trangThai === 'da_thanh_toan' ? 'badge-success' : 'badge-warning';
+    let statusText = hd.trangThai === 'da_thanh_toan' ? '✓ Đã thanh toán' : '⏳ Đóng một phần';
+    
+    let tenChuHo = hd.hoDan ? hd.hoDan.tenChuHo : hd.tenChuHo;
+    let canHo = hd.hoDan ? hd.hoDan.soPhong : hd.canHo;
+    
+    return `
     <tr>
-      <td style="color:var(--muted)">${String(i+1).padStart(3,'0')}</td>
-      <td><b>${hd.tenChuHo}</b><br><small style="color:var(--muted)">${hd.canHo}</small></td>
+      <td>00${i + 1}</td>
+      <td><b>${tenChuHo}</b><br><small style="color:var(--muted)">${canHo}</small></td>
       <td>${hd.thang}</td>
       <td><b style="color:var(--primary)">${hd.tongTien.toLocaleString('vi-VN')}đ</b></td>
-      <td><span class="badge ${hd.trangThai==='da_thanh_toan'?'badge-success':'badge-danger'}">
-        ${hd.trangThai==='da_thanh_toan'?'✅ Đã thanh toán':'❌ Chưa thanh toán'}
-      </span></td>
+      <td><span class="badge ${badgeClass}">${statusText}</span></td>
       <td>${hd.ngayThanhToan || '—'}</td>
       <td>
-        <button class="abtn" onclick='xemChiTiet(${JSON.stringify(hd).replace(/"/g,"&quot;")})'>📄 Chi tiết</button>
+        <button class="abtn" onclick='xemChiTiet(${JSON.stringify(hd).replace(/"/g,"&quot;")})'>👀 Chi tiết</button>
       </td>
     </tr>
-  `).join('');
+    `;
+  }).join('');
 }
 
 // ===== LỌC =====
@@ -288,32 +263,59 @@ function filterTable() {
   });
 }
 
-// ===== XEM CHI TIẾT =====
-function xemChiTiet(hd) {
-  currentHoaDon = hd;
-  document.getElementById('modalChiTiet').classList.add('show');
-  document.getElementById('dt-tenHo').textContent    = `${hd.tenChuHo} – ${hd.canHo}`;
-  document.getElementById('dt-thang').textContent    = `Hóa đơn tháng ${hd.thang}`;
-  document.getElementById('dt-tongTien').textContent = hd.tongTien.toLocaleString('vi-VN') + 'đ';
-  document.getElementById('dt-tongCong').textContent = hd.tongTien.toLocaleString('vi-VN') + 'đ';
-  document.getElementById('dt-trangThai').innerHTML  =
-    `<span style="font-size:12px">${hd.trangThai==='da_thanh_toan'?'✅ Đã thanh toán':'❌ Chưa thanh toán'}</span>`;
+  // ===== XEM CHI TIẾT =====
+  function xemChiTiet(hd) {
+    currentHoaDon = hd;
+    let tenChuHo = hd.hoDan ? hd.hoDan.tenChuHo : hd.tenChuHo;
+    let canHo = hd.hoDan ? hd.hoDan.soPhong : hd.canHo;
+    
+    document.getElementById('modalChiTiet').classList.add('show');
+    document.getElementById('dt-tenHo').textContent    = `${tenChuHo} — ${canHo}`;
+    document.getElementById('dt-thang').textContent    = `Hóa đơn tháng ${hd.thang}`;
+    document.getElementById('dt-tongTien').textContent = hd.tongTien.toLocaleString('vi-VN') + 'đ';
+    document.getElementById('dt-tongCong').textContent = hd.tongTien.toLocaleString('vi-VN') + 'đ';
+    
+    let statusHtml = '';
+    if (hd.trangThai === 'da_thanh_toan') {
+      statusHtml = '<span style="font-size:12px;color:var(--success)">✓ Đã thanh toán</span>';
+    } else if (hd.trangThai === 'mot_phan') {
+      statusHtml = '<span style="font-size:12px;color:var(--warning)">⏳ Đóng một phần</span>';
+    } else {
+      statusHtml = '<span style="font-size:12px;color:var(--danger)">❌ Chưa thanh toán</span>';
+    }
+    document.getElementById('dt-trangThai').innerHTML = statusHtml;
 
-  // Ẩn/hiện nút thu tiền
-  document.getElementById('btnThuTien').style.display =
-    hd.trangThai === 'chua_thanh_toan' ? 'inline-flex' : 'none';
+    // Ẩn/hiện nút thu tiền (chỉ hiện khi chưa thanh toán)
+    document.getElementById('btnThuTien').style.display =
+      hd.trangThai === 'chua_thanh_toan' ? 'inline-flex' : 'none';
 
-  // Render chi tiết khoản phí
-  const items = hd.chiTiet || MOCK_CHI_TIET;
-  document.getElementById('chiTietBody').innerHTML = items.map(ct => `
-    <tr>
-      <td>${ct.tenPhi}</td>
-      <td>${ct.donGia.toLocaleString('vi-VN')}đ / ${ct.donVi}</td>
-      <td>${ct.soLuong} ${ct.donVi}</td>
-      <td><b>${(ct.donGia * ct.soLuong).toLocaleString('vi-VN')}đ</b></td>
-    </tr>
-  `).join('');
-}
+    // Render chi tiết khoản phí
+    let items = [];
+    if (hd.chiTietList && hd.chiTietList.length > 0) {
+      items = hd.chiTietList.map(ct => ({
+        tenPhi: ct.danhMucPhi ? ct.danhMucPhi.tenPhi : 'Khoản phí',
+        donGia: ct.donGia,
+        soLuong: ct.soLuong,
+        donVi: ct.danhMucPhi ? ct.danhMucPhi.donViTinh : '',
+        thanhTien: ct.thanhTien,
+        trangThai: ct.trangThai
+      }));
+    } else {
+      items = hd.chiTiet || MOCK_CHI_TIET;
+    }
+
+    document.getElementById('chiTietBody').innerHTML = items.map(ct => {
+      let thanhTien = ct.thanhTien !== undefined ? ct.thanhTien : (ct.donGia * ct.soLuong);
+      return `
+        <tr>
+          <td>${ct.tenPhi} ${ct.trangThai === 'da_dong' ? '<span class="badge badge-success" style="font-size:10px">Đã thu</span>' : ''}</td>
+          <td>${ct.donGia.toLocaleString('vi-VN')}đ / ${ct.donVi}</td>
+          <td>${ct.soLuong} ${ct.donVi}</td>
+          <td><b>${thanhTien.toLocaleString('vi-VN')}đ</b></td>
+        </tr>
+      `;
+    }).join('');
+  }
 
 function closeChiTiet() {
   document.getElementById('modalChiTiet').classList.remove('show');
@@ -349,5 +351,10 @@ const MOCK_DATA = [
 
 loadData();
 </script>
+<script src="auth.js"></script>
+<script>
+AUTH.init('hoadon');
+</script>
 </body>
 </html>
+

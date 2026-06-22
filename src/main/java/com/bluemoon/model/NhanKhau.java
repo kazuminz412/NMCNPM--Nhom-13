@@ -42,12 +42,18 @@ public class NhanKhau extends BaseEntity {
     // Đã XÓA trường ghiChu vì DB không có
 
     // SỬA LỖI 3: Map hoDanId để Frontend dễ lấy dữ liệu (không dùng Transient)
-    @Column(name = "ho_gia_dinh_id", insertable = false, updatable = false)
+    @Column(name = "ho_dan_id", insertable = false, updatable = false)
     private Long hoDanId;
+
+    @org.hibernate.annotations.Formula("(SELECT hd.ten_chu_ho FROM ho_dan hd WHERE hd.id = ho_dan_id)")
+    private String tenChuHo;
+
+    @org.hibernate.annotations.Formula("(SELECT hd.so_phong FROM ho_dan hd WHERE hd.id = ho_dan_id)")
+    private String canHo;
 
     // SỬA LỖI 1: Chặn đứng vòng lặp vô hạn JSON
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ho_gia_dinh_id")
+    @JoinColumn(name = "ho_dan_id")
     @JsonIgnore 
     private HoDan hoDan;
 }

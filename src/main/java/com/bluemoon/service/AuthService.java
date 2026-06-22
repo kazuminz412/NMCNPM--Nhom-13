@@ -16,19 +16,24 @@ public class AuthService {
     private final JwtUtils jwtUtils;
 
     // 1. LOGIN
-      public String login(String username, String password) {
-    // 1. Tìm Người dùng theo username
-    NguoiDung NguoiDung = repository.findByUsername(username)
-        .orElseThrow(() -> new RuntimeException("Sai tên đăng nhập hoặc mật khẩu!")); // Lỗi 401
-    
-    // 2. So sánh mật khẩu (password người dùng nhập vs password đã hash trong DB)
-    if (!passwordEncoder.matches(password, user.getPassword())) {
-        throw new RuntimeException("Sai tên đăng nhập hoặc mật khẩu!"); // Lỗi 401
-    }
-    
-    // 3. Nếu đúng, trả về Token
-    return jwtUtils.generateToken(user.getUsername());
-}
+    public java.util.Map<String, Object> login(String username, String password) {
+        // 1. Tìm Người dùng theo username
+        NguoiDung user = repository.findByUsername(username)
+            .orElseThrow(() -> new RuntimeException("Sai tên đăng nhập hoặc mật khẩu!")); // Lỗi 401
+        
+        boolean matches = passwordEncoder.matches(password, user.getPassword());
+
+        if (!matches) {
+            throw new RuntimeException("Sai tên đăng nhập hoặc mật khẩu!"); // Lỗi 401
+        }
+        
+        // 3. Nếu đúng, trả về Token (truyền đủ 3 tham số cho JwtUtils)
+        String token = jwtUtils.generateToken(user.getUsername(), user.getRole(), user.getHoDanId());
+        
+        java.util.Map<String, Object> result = new java.util.HashMap<>();
+        result.put("token", token);
+        result.put("user", user);
+        return result;
     }
 
     // 2. REGISTER

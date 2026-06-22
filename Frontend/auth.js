@@ -4,7 +4,8 @@ const AUTH = (() => {
   const user = userRaw ? JSON.parse(userRaw) : null;
   
   // Đổi mặc định fallback thành CU_DAN để an toàn tuyệt đối
-  const role = user?.role || localStorage.getItem('role') || 'CU_DAN';
+  let role = (user?.role || localStorage.getItem('role') || 'CU_DAN').toUpperCase();
+  if (role !== 'ADMIN' && role !== 'KE_TOAN') role = 'CU_DAN'; // Khóa chặt role hợp lệ
 
   function protect() {
     if (!token) {
@@ -26,8 +27,9 @@ const AUTH = (() => {
         {
           label: 'Quản lý dân cư',
           items: [
-            { href: 'ho-dan.html',      icon: '🏠', label: 'Hộ dân',       key: 'hodan',      badge: '248' },
+            { href: 'ho-dan.html',      icon: '🏠', label: 'Hộ dân',       key: 'hodan' },
             { href: 'nhan-khau.html',   icon: '👥', label: 'Nhân khẩu',    key: 'nhankhau' },
+            { href: 'tam-tru.html',     icon: '📝', label: 'Tạm trú / Tạm vắng', key: 'tamtru' },
             { href: 'phuong-tien.html', icon: '🚗', label: 'Phương tiện',  key: 'phuongtien' },
           ]
         },
@@ -36,16 +38,8 @@ const AUTH = (() => {
           items: [
             { href: 'danh-muc-phi.html', icon: '💲', label: 'Danh mục khoản phí', key: 'danhmucphi' },
             { href: 'hoa-don.html',      icon: '🧾', label: 'Hóa đơn',            key: 'hoadon' },
-            { href: 'thanh-toan.html',   icon: '💳', label: 'Thanh toán',         key: 'thanhtoan' },
             { href: 'khoan-thu.html',    icon: '📋', label: 'Khoản thu',          key: 'khoanthu' },
-            { href: 'thu-phi.html',      icon: '💰', label: 'Thu phí',            key: 'thuphi', badgeDanger: '5' },
-            { href: 'lich-su.html',      icon: '📜', label: 'Lịch sử giao dịch',  key: 'lichsu' },
-          ]
-        },
-        {
-          label: 'Báo cáo',
-          items: [
-            { href: 'thong-ke.html', icon: '📈', label: 'Thống kê', key: 'thongke' },
+            { href: 'thu-phi.html',      icon: '💰', label: 'Thu phí',            key: 'thuphi' },
           ]
         },
         {
@@ -60,20 +54,18 @@ const AUTH = (() => {
     KE_TOAN: {
       sections: [
         {
+          label: 'Tổng quan',
+          items: [
+            { href: 'dashboard.html', icon: '📊', label: 'Bảng điều khiển', key: 'dashboard' },
+          ]
+        },
+        {
           label: 'Tài chính',
           items: [
             { href: 'danh-muc-phi.html', icon: '💲', label: 'Danh mục khoản phí', key: 'danhmucphi' },
             { href: 'hoa-don.html',      icon: '🧾', label: 'Hóa đơn',            key: 'hoadon' },
-            { href: 'thanh-toan.html',   icon: '💳', label: 'Thanh toán',         key: 'thanhtoan' },
             { href: 'khoan-thu.html',    icon: '📋', label: 'Khoản thu',          key: 'khoanthu' },
-            { href: 'thu-phi.html',      icon: '💰', label: 'Thu phí',            key: 'thuphi', badgeDanger: '5' },
-            { href: 'lich-su.html',      icon: '📜', label: 'Lịch sử giao dịch',  key: 'lichsu' },
-          ]
-        },
-        {
-          label: 'Báo cáo',
-          items: [
-            { href: 'thong-ke.html', icon: '📈', label: 'Thống kê', key: 'thongke' },
+            { href: 'thu-phi.html',      icon: '💰', label: 'Thu phí',            key: 'thuphi' },
           ]
         },
       ]
@@ -85,7 +77,9 @@ const AUTH = (() => {
           label: 'Góc cư dân',
           items: [
             { href: 'cu-dan-nha-toi.html',  icon: '🏠', label: 'Nhà của tôi',        key: 'nhatoi' },
-            { href: 'cu-dan-hoa-don.html',  icon: '🧾', label: 'Hóa đơn & Thanh toán', key: 'cudanhoadon' },
+            { href: 'cu-dan-hoa-don.html',  icon: '🧾', label: 'Hóa đơn', key: 'cudanhoadon' },
+            { href: 'cu-dan-thanh-toan.html', icon: '💳', label: 'Thanh toán', key: 'cudanthanhtoan' },
+            { href: 'cu-dan-lich-su.html',  icon: '📜', label: 'Lịch sử', key: 'cudanlichsu' }
           ]
         },
       ]
@@ -96,7 +90,8 @@ const AUTH = (() => {
     const aside = document.querySelector('aside');
     if (!aside) return;
 
-    const config = MENU_CONFIG[role];
+    // Fallback an toàn nếu role bị lỗi trong localStorage
+    const config = MENU_CONFIG[role] || MENU_CONFIG['CU_DAN'];
     let html = '';
 
     config.sections.forEach((section, idx) => {
@@ -134,7 +129,7 @@ const AUTH = (() => {
   function checkPermission(activeKey) {
     if (!activeKey) return true; // Nếu trang không truyền key thì cho qua
     
-    const config = MENU_CONFIG[role];
+    const config = MENU_CONFIG[role] || MENU_CONFIG['CU_DAN'];
     let isAllowed = false;
     
     // Duyệt qua menu của role hiện tại, nếu thấy key thì tức là được phép vào

@@ -7,14 +7,16 @@ import lombok.*;
 @Table(name = "chi_tiet_hoa_don")
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
+@com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class ChiTietHoaDon extends BaseEntity {
 
     // 1. Ánh xạ khóa ngoại tới bảng Hóa Đơn
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hoa_don_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private HoaDon hoaDon;
 
-    // 2. Ánh xạ khóa ngoại tới bảng Danh Mục Phí (Đã đổi tên từ KhoanThu)
+    // 2. Ánh xạ khóa ngoại tới bảng Danh Mục Phí
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "danh_muc_phi_id", nullable = false)
     private DanhMucPhi danhMucPhi;
@@ -23,11 +25,16 @@ public class ChiTietHoaDon extends BaseEntity {
     @Column(name = "so_luong", nullable = false)
     private Long soLuong;
     
-    // 4. Lưu lại giá tiền TẠI THỜI ĐIỂM XUẤT HÓA ĐƠN để chống sai lệch báo cáo sau này
+    // 4. Lưu lại giá tiền TẠI THỜI ĐIỂM XUẤT HÓA ĐƠN
     @Column(name = "don_gia", nullable = false)
     private Long donGia;
 
     // 5. Đổi Double thành Long
     @Column(name = "thanh_tien", nullable = false)
     private Long thanhTien;
+
+    // 6. Trạng thái đóng phí cho riêng khoản này
+    @Column(name = "trang_thai", nullable = false)
+    private String trangThai = "chua_dong"; // chua_dong, da_dong
 }
+

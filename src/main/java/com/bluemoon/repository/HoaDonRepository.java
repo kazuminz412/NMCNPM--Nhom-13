@@ -60,4 +60,16 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Long> {
 
     // Lấy toàn bộ hóa đơn của riêng 1 hộ dân (Dành cho "Góc Cư Dân" xem lịch sử nhà mình)
     List<HoaDon> findByHoDanId(Long hoDanId);
+
+    // Lấy hóa đơn của 1 hộ dân trong 1 tháng cụ thể (Dành cho HoaDonService.timTheoHoDanVaThang)
+    List<HoaDon> findByHoDanIdAndThang(Long hoDanId, String thang);
+
+
+    // ==========================================
+    // NHÓM 4: PHỤC VỤ THỐNG KÊ CÔNG NỢ
+    // ==========================================
+
+    // Tính tổng công nợ: Đếm số hóa đơn chưa thanh toán + Tổng tiền nợ (Dành cho ThongKeService)
+    @Query("SELECT COUNT(h), COALESCE(SUM(h.tongTien), 0) FROM HoaDon h WHERE h.trangThai = 'chua_thanh_toan'")
+    List<Object[]> tinhCongNo();
 }

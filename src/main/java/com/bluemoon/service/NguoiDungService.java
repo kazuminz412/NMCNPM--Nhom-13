@@ -58,6 +58,15 @@ public class NguoiDungService {
 
         existingUser.setRole(nguoiDungDetails.getRole());
         existingUser.setNhanKhauId(nguoiDungDetails.getNhanKhauId());
+        if (nguoiDungDetails.getHoTen() != null) {
+            existingUser.setHoTen(nguoiDungDetails.getHoTen());
+        }
+        if (nguoiDungDetails.getHoDanId() != null) {
+            existingUser.setHoDanId(nguoiDungDetails.getHoDanId());
+        }
+        if (nguoiDungDetails.getTrangThai() != null) {
+            existingUser.setTrangThai(nguoiDungDetails.getTrangThai());
+        }
         
         // Chỉ cập nhật mật khẩu nếu Frontend có gửi mật khẩu mới lên
         if (nguoiDungDetails.getPassword() != null && !nguoiDungDetails.getPassword().isEmpty()) {

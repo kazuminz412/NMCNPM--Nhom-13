@@ -14,7 +14,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/nguoi-dung")
-@CrossOrigin(origins = "*") // Cho phép Frontend kết nối
 public class NguoiDungController {
 
     @Autowired

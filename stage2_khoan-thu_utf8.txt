@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
@@ -33,7 +33,36 @@
     </header>
 
     <aside>
-      
+      <div class="nav-sec">
+        <span class="nav-lbl">Tổng quan</span
+        ><a href="dashboard.html" class="nav-a">📊 Bảng điều khiển</a>
+      </div>
+      <div class="ndiv"></div>
+      <div class="nav-sec">
+        <span class="nav-lbl">Quản lý dân cư</span>
+        <a href="ho-dan.html" class="nav-a">🏠 Hộ dân</a>
+        <a href="nhan-khau.html" class="nav-a">👥 Nhân khẩu</a>
+      </div>
+      <div class="ndiv"></div>
+      <div class="nav-sec">
+        <span class="nav-lbl">Tài chính</span>
+        <a href="danh-muc-phi.html" class="nav-a">
+        💲 Danh mục khoản phí
+        </a>
+        <a href="hoa-don.html" class="nav-a">
+        🧾 Hóa đơn
+        </a>
+        <a href="khoan-thu.html" class="nav-a active">💳 Khoản thu</a>
+        <a href="thu-phi.html" class="nav-a"
+          >💰 Thu phí <span class="nbadge red">5</span></a
+        >
+        <a href="lich-su.html" class="nav-a">📜 Lịch sử giao dịch</a>
+      </div>
+      <div class="ndiv"></div>
+      <div class="nav-sec">
+        <span class="nav-lbl">Báo cáo</span
+        ><a href="thong-ke.html" class="nav-a">📈 Thống kê</a>
+      </div>
       <div class="sidebar-foot">
         <button class="logout" onclick="handleLogout()">🚪 Đăng xuất</button>
       </div>
@@ -87,13 +116,16 @@
           <form id="ktForm" novalidate>
             <div class="form-group">
               <label class="form-label"
-                >Tên khoản thu (Từ Danh mục phí) <span class="required">*</span></label
+                >Tên khoản thu <span class="required">*</span></label
               >
-              <select id="tenKhoanThu" class="form-control" onchange="autoFillFeeDetails()">
-                <option value="">-- Chọn khoản phí --</option>
-              </select>
+              <input
+                type="text"
+                id="tenKhoanThu"
+                class="form-control"
+                placeholder="Phí vệ sinh tháng 5/2026"
+              />
               <div class="form-error" id="err-tenKhoanThu">
-                Vui lòng chọn khoản thu
+                Vui lòng nhập tên khoản thu
               </div>
             </div>
             <div class="form-row">
@@ -101,8 +133,9 @@
                 <label class="form-label"
                   >Loại <span class="required">*</span></label
                 >
-                <select id="loai" class="form-control" disabled>
+                <select id="loai" class="form-control">
                   <option value="bat_buoc">Bắt buộc</option>
+                  <option value="tu_nguyen">Tự nguyện</option>
                 </select>
               </div>
               <div class="form-group">
@@ -118,7 +151,11 @@
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label">Cách tính phí</label>
-                <input type="text" id="cachTinh" class="form-control" disabled placeholder="Sẽ tự động điền"/>
+                <select id="cachTinh" class="form-control">
+                  <option value="co_dinh">Cố định / hộ</option>
+                  <option value="dien_tich">Theo diện tích (m²)</option>
+                  <option value="nhan_khau">Theo nhân khẩu</option>
+                </select>
               </div>
               <div class="form-group">
                 <label class="form-label"
@@ -155,73 +192,33 @@
       </div>
     </div>
 
-    <script src="common.js"></script>
-    <script src="auth.js"></script>
-    <script>
-      AUTH.init('khoanthu');
-    </script>
     <script>
       const MOCK = [
         {
           id: "1",
-          tenKhoanThu: "Phí quản lý vận hành T6",
+          tenKhoanThu: "Phí vệ sinh T5/2026",
           loai: "bat_buoc",
-          soTien: 16500,
-          thangApDung: "2026-06",
+          soTien: 50000,
+          thangApDung: "2026-05",
           soHo: 248,
         },
         {
           id: "2",
-          tenKhoanThu: "Phí bảo trì (Quỹ 2%)",
+          tenKhoanThu: "Phí an ninh T5/2026",
           loai: "bat_buoc",
-          soTien: 25000,
-          thangApDung: "2026-06",
+          soTien: 30000,
+          thangApDung: "2026-05",
           soHo: 248,
         },
         {
           id: "3",
-          tenKhoanThu: "Quỹ Khuyến học",
+          tenKhoanThu: "Quỹ cộng đồng T5",
           loai: "tu_nguyen",
-          soTien: 0,
-          thangApDung: "2026-06",
+          soTien: 100000,
+          thangApDung: "2026-05",
           soHo: 120,
         },
       ];
-
-      let danhMucPhiList = [];
-
-      async function loadDanhMucPhi() {
-        try {
-          const res = await fetch(`${API}/danh-muc-phi`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          if (res.ok) {
-            danhMucPhiList = await res.json();
-            // Lọc chỉ lấy các khoản phí bắt buộc
-            danhMucPhiList = danhMucPhiList.filter(f => f.loaiPhi === 'bat_buoc');
-            const select = document.getElementById("tenKhoanThu");
-            select.innerHTML = '<option value="">-- Chọn khoản phí --</option>';
-            danhMucPhiList.forEach(fee => {
-              const opt = document.createElement("option");
-              opt.value = fee.id;
-              opt.textContent = fee.tenPhi;
-              select.appendChild(opt);
-            });
-          }
-        } catch(e) {
-          console.error("Lỗi tải danh mục phí", e);
-        }
-      }
-
-      function autoFillFeeDetails() {
-        const feeId = document.getElementById("tenKhoanThu").value;
-        const fee = danhMucPhiList.find(f => f.id == feeId);
-        if (fee) {
-          document.getElementById("loai").value = fee.loaiPhi;
-          document.getElementById("cachTinh").value = fee.donViTinh;
-          document.getElementById("soTien").value = fee.donGia;
-        }
-      }
 
       function renderTable(data) {
         document.getElementById("tableBody").innerHTML = data
@@ -231,11 +228,12 @@
       <td style="color:var(--muted)">${String(i + 1).padStart(3, "0")}</td>
       <td><b>${k.tenKhoanThu}</b></td>
       <td><span class="badge ${k.loai === "bat_buoc" ? "badge-danger" : "badge-success"}">${k.loai === "bat_buoc" ? "Bắt buộc" : "Tự nguyện"}</span></td>
-      <td><b>${Number(k.soTien).toLocaleString("vi-VN")}đ</b></td>
+      <td><b>${k.soTien.toLocaleString("vi-VN")}đ</b></td>
       <td>${k.thangApDung}</td>
       <td>${k.soHo} hộ</td>
       <td style="display:flex;gap:4px">
-        <button class="abtn danger" onclick="deleteKhoanThu('${k.danhMucPhiId}', '${k.thangApDung}')">🗑</button>
+        <button class="abtn">✏️</button>
+        <button class="abtn danger">🗑</button>
       </td>
     </tr>
   `,
@@ -243,32 +241,11 @@
           .join("");
       }
 
-      async function deleteKhoanThu(danhMucPhiId, thang) {
-        if (!confirm(`Bạn có chắc muốn xóa khoản thu của tháng ${thang} này không? Thao tác này sẽ xóa mọi hóa đơn liên quan!`)) return;
-        try {
-          const res = await fetch(`${API}/khoan-thu/${danhMucPhiId}/${thang}`, {
-            method: 'DELETE',
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          if (res.ok) {
-            alert("Đã xóa khoản thu thành công!");
-            loadData();
-          } else {
-            alert("Lỗi khi xóa khoản thu!");
-          }
-        } catch (e) {
-          console.error(e);
-          alert("Lỗi kết nối khi xóa khoản thu!");
-        }
-      }
-
       async function loadData() {
-        await loadDanhMucPhi();
         try {
           const res = await fetch(`${API}/khoan-thu`, {
             headers: { Authorization: `Bearer ${token}` },
           });
-          if (!res.ok) throw new Error("API failed");
           renderTable(await res.json());
         } catch {
           renderTable(MOCK);
@@ -299,9 +276,11 @@
 
       async function submitForm() {
         if (!validate()) return;
-        const selectEl = document.getElementById("tenKhoanThu");
         const body = {
-          danhMucPhiId: +selectEl.value,
+          tenKhoanThu: document.getElementById("tenKhoanThu").value.trim(),
+          loai: document.getElementById("loai").value,
+          cachTinh: document.getElementById("cachTinh").value,
+          soTien: +document.getElementById("soTien").value,
           thangApDung: document.getElementById("thangApDung").value,
           ghiChu: document.getElementById("ghiChu").value,
         };
@@ -326,5 +305,6 @@
 
       loadData();
     </script>
+    <script src="common.js"></script>
   </body>
 </html>

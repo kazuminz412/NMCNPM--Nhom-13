@@ -31,7 +31,7 @@ public class NhanKhauService {
         if (nhanKhau.getHoDanId() != null) {
             HoDan hoDan = hoDanRepository.findById(nhanKhau.getHoDanId())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy Hộ gia đình để thêm vào!"));
-            nhanKhau.setHoDanh(hoDanh);
+            nhanKhau.setHoDan(hoDan); // SỬA: hoDanh -> hoDan, setHoDanh -> setHoDan
         } else {
             throw new RuntimeException("Phải chọn Hộ gia đình cho nhân khẩu này!");
         }
@@ -56,13 +56,14 @@ public class NhanKhauService {
         existing.setSoDienThoai(details.getSoDienThoai());
         existing.setQuanHe(details.getQuanHe());
         existing.setTrangThai(details.getTrangThai());
-        existing.setGhiChu(details.getGhiChu());
+        // ĐÃ XÓA: existing.setGhiChu() — Model NhanKhau không có trường ghiChu
 
+        // SỬA: HoGiaDinh -> HoDan, hoGiaDinhRepository -> hoDanRepository, setHoGiaDinh -> setHoDan
         if (details.getHoDanId() != null && 
-           (existing.getHoGiaDinh() == null || !existing.getHoGiaDinh().getId().equals(details.getHoDanId()))) {
-            HoGiaDinh hoGiaDinhMoi = hoGiaDinhRepository.findById(details.getHoDanId())
+           (existing.getHoDan() == null || !existing.getHoDan().getId().equals(details.getHoDanId()))) {
+            HoDan hoDanMoi = hoDanRepository.findById(details.getHoDanId())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy Hộ gia đình mới!"));
-            existing.setHoGiaDinh(hoGiaDinhMoi);
+            existing.setHoDan(hoDanMoi);
         }
         
         return nhanKhauRepository.save(existing);
@@ -71,5 +72,10 @@ public class NhanKhauService {
     // Xóa nhân khẩu
     public void delete(Long id) {
         nhanKhauRepository.deleteById(id);
+    }
+
+    // Lấy danh sách nhân khẩu theo Hộ dân (Dành cho MeController - Góc Cư Dân)
+    public List<NhanKhau> findByHoDanId(Long hoDanId) {
+        return nhanKhauRepository.findByHoDanId(hoDanId);
     }
 }

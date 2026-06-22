@@ -57,9 +57,9 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#1B4F72
     <div class="demo-hint">
       <b>🧪 Demo — Click để điền nhanh:</b>
       <div class="demo-accounts">
-        <button class="demo-btn" onclick="fillDemo('admin','admin123')">👑 ADMIN — admin / admin123</button>
-        <button class="demo-btn" onclick="fillDemo('ketoan','ketoan123')">💼 KẾ TOÁN — ketoan / ketoan123</button>
-        <button class="demo-btn" onclick="fillDemo('cudan01','cudan123')">🏠 CƯ DÂN — cudan01 / cudan123</button>
+        <button class="demo-btn" type="button" onclick="fillDemo('admin','123456')">👑 ADMIN — admin / 123456</button>
+        <button class="demo-btn" type="button" onclick="fillDemo('ketoan','123456')">💼 KẾ TOÁN — ketoan / 123456</button>
+        <button class="demo-btn" type="button" onclick="fillDemo('cudan01','123456')">🏠 CƯ DÂN — cudan01 / 123456</button>
       </div>
     </div>
 
@@ -99,8 +99,14 @@ const API = 'http://localhost:8080/api';
 // Đã login rồi thì redirect luôn
 const existingToken = localStorage.getItem('token');
 if (existingToken) {
-  const u = JSON.parse(localStorage.getItem('user') || '{}');
-  redirectByRole(u.role);
+  if (existingToken.startsWith('demo-token')) {
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    localStorage.removeItem('user');
+  } else {
+    const u = JSON.parse(localStorage.getItem('user') || '{}');
+    redirectByRole(u.role);
+  }
 }
 
 function redirectByRole(role) {
@@ -160,17 +166,8 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     localStorage.setItem('user',  JSON.stringify(data.user));
     redirectByRole(data.user.role);
   } catch {
-    // Demo fallback khi chưa có backend
-    const demoUser = DEMO_ACCOUNTS[username];
-    if (demoUser && password.length >= 6) {
-      localStorage.setItem('token', 'demo-token-' + Date.now());
-      localStorage.setItem('role',  demoUser.role);
-      localStorage.setItem('user',  JSON.stringify(demoUser));
-      redirectByRole(demoUser.role);
-    } else {
-      document.getElementById('alertMsg').textContent = 'Tên đăng nhập hoặc mật khẩu không đúng!';
-      document.getElementById('alertError').style.display = 'flex';
-    }
+    document.getElementById('alertMsg').textContent = 'Tên đăng nhập hoặc mật khẩu không đúng!';
+    document.getElementById('alertError').style.display = 'flex';
   } finally {
     btn.disabled = false;
     btnText.textContent = 'Đăng nhập';

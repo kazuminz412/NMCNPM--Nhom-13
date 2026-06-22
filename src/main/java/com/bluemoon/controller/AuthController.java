@@ -12,7 +12,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*") // Cho phép frontend gọi API
 public class AuthController {
 
     private final AuthService authService;
@@ -21,13 +20,18 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         try {
-            String token = authService.login(loginRequest.getUsername(), loginRequest.getPassword());
-            // Trả về token cho frontend lưu vào localStorage
-            return ResponseEntity.ok(Map.of("token", token));
+            java.util.Map<String, Object> responseData = authService.login(loginRequest.getUsername(), loginRequest.getPassword());
+            // Trả về token và user info cho frontend lưu vào localStorage
+            return ResponseEntity.ok(responseData);
         } catch (RuntimeException e) {
             // Trả về lỗi 401 nếu sai pass hoặc user (Frontend bắt biến message để in ra màn hình)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", e.getMessage()));
         }
+    }
+
+    @GetMapping("/hash")
+    public String getHash() {
+        return new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder().encode("123456");
     }
 
     // 2. ĐĂNG KÝ (Nếu làm tính năng tự đăng ký thì viết vào đây)

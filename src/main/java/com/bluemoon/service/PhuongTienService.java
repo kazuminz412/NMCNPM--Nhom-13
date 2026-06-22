@@ -34,4 +34,9 @@ public class PhuongTienService {
         p.setHoDan(hoDan); 
         return phuongTienRepository.save(p);
     }
+
+    // Lấy danh sách phương tiện theo Hộ dân (Dành cho MeController - Góc Cư Dân)
+    public java.util.List<PhuongTien> findByHoDanId(Long hoDanId) {
+        return phuongTienRepository.findByHoDanId(hoDanId);
+    }
 }

@@ -63,4 +63,91 @@ public class MeController {
         }
         return ResponseEntity.ok(hoaDonService.findByHoDanId(hoDanId));
     }
+
+    // Tự động tiêm các Repository cần thiết cho chức năng đóng góp tự nguyện
+    private final com.bluemoon.repository.HoDanRepository hoDanRepo;
+    private final com.bluemoon.repository.DanhMucPhiRepository danhMucPhiRepo;
+    private final com.bluemoon.repository.HoaDonRepository hoaDonRepo;
+    private final com.bluemoon.repository.ChiTietHoaDonRepository chiTietHoaDonRepo;
+    private final com.bluemoon.repository.GiaoDichRepository giaoDichRepo;
+
+    // 5. ĐÓNG GÓP TỰ NGUYỆN
+    @PostMapping("/tu-nguyen")
+    @org.springframework.transaction.annotation.Transactional
+    public ResponseEntity<?> dongGopTuNguyen(HttpServletRequest request, @RequestBody java.util.Map<String, Object> payload) {
+        Long hoDanId = getHoDanId(request);
+        Long danhMucPhiId = Long.valueOf(payload.get("danhMucPhiId").toString());
+        Long soTienNop = Long.valueOf(payload.get("soTienNop").toString());
+        Long soLuong = payload.containsKey("soLuong") ? Long.valueOf(payload.get("soLuong").toString()) : 1L;
+        String ghiChu = payload.getOrDefault("ghiChu", "Cư dân đóng góp tự nguyện").toString();
+
+        com.bluemoon.model.HoDan hd = hoDanRepo.findById(hoDanId)
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy hộ dân"));
+        com.bluemoon.model.DanhMucPhi dmp = danhMucPhiRepo.findById(danhMucPhiId)
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục phí"));
+
+        if (!"tu_nguyen".equals(dmp.getLoaiPhi()) && !"dich_vu".equals(dmp.getLoaiPhi())) {
+            return ResponseEntity.badRequest().body("Khoản này không được phép đăng ký/đóng góp tự do!");
+        }
+
+        // Lấy tháng hiện tại
+        java.time.YearMonth currentMonth = java.time.YearMonth.now();
+        String thang = currentMonth.toString(); // format "YYYY-MM"
+
+        // Tìm hoặc tạo HoaDon
+        com.bluemoon.model.HoaDon hdObj = hoaDonRepo.findAll().stream()
+            .filter(h -> h.getHoDan().getId().equals(hoDanId) && h.getThang().equals(thang))
+            .findFirst()
+            .orElse(null);
+
+        if (hdObj == null) {
+            hdObj = new com.bluemoon.model.HoaDon();
+            hdObj.setHoDan(hd);
+            hdObj.setThang(thang);
+            hdObj.setTrangThai("chua_thanh_toan");
+            hdObj.setTongTien(0L);
+            hdObj = hoaDonRepo.save(hdObj);
+        }
+
+        // Tạo ChiTietHoaDon
+        com.bluemoon.model.ChiTietHoaDon ct = new com.bluemoon.model.ChiTietHoaDon();
+        ct.setHoaDon(hdObj);
+        ct.setDanhMucPhi(dmp);
+        ct.setSoLuong(soLuong);
+        if (dmp.getDonGia() != null && dmp.getDonGia() > 0) {
+            ct.setDonGia(dmp.getDonGia());
+        } else {
+            ct.setDonGia(soTienNop / soLuong);
+        }
+        ct.setThanhTien(soTienNop);
+        ct.setTrangThai("da_dong");
+        chiTietHoaDonRepo.save(ct);
+
+        // Cập nhật tổng tiền hóa đơn
+        hdObj.setTongTien(hdObj.getTongTien() + soTienNop);
+        // Vì đây là khoản đóng góp, có thể hóa đơn vẫn còn khoản khác chưa đóng.
+        // Chạy lại logic check xem tất cả đã đóng chưa.
+        boolean allPaid = true;
+        for (com.bluemoon.model.ChiTietHoaDon c : hdObj.getChiTietList()) {
+            if (c.getDanhMucPhi() != null && "bat_buoc".equals(c.getDanhMucPhi().getLoaiPhi()) && "chua_dong".equals(c.getTrangThai())) {
+                allPaid = false;
+                break;
+            }
+        }
+        hdObj.setTrangThai(allPaid ? "da_thanh_toan" : "mot_phan");
+        hoaDonRepo.save(hdObj);
+
+        // Tạo GiaoDich
+        com.bluemoon.model.GiaoDich gd = new com.bluemoon.model.GiaoDich();
+        gd.setMaGiaoDich("GD-" + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+        gd.setHoaDon(hdObj);
+        gd.setHoDan(hd);
+        gd.setSoTien(soTienNop);
+        gd.setPhuongThuc("VietQR");
+        gd.setThoiGian(java.time.LocalDateTime.now());
+        gd.setGhiChu(ghiChu);
+        giaoDichRepo.save(gd);
+
+        return ResponseEntity.ok("Ghi nhận đóng góp thành công!");
+    }
 }

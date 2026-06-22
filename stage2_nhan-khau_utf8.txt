@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 <head>
 <meta charset="UTF-8"/>
@@ -42,7 +42,36 @@
 </header>
 
 <!-- SIDEBAR -->
-<aside></aside>
+<aside>
+  <div class="nav-sec"><span class="nav-lbl">Tổng quan</span>
+    <a href="dashboard.html" class="nav-a">📊 Bảng điều khiển</a>
+  </div>
+  <div class="ndiv"></div>
+  <div class="nav-sec"><span class="nav-lbl">Quản lý dân cư</span>
+    <a href="ho-dan.html" class="nav-a">🏠 Hộ dân <span class="nbadge">248</span></a>
+    <a href="nhan-khau.html" class="nav-a active">👥 Nhân khẩu</a>
+    <a href="tam-tru.html" class="nav-a">📋 Tạm trú / Tạm vắng</a>
+  </div>
+  <div class="ndiv"></div>
+  <div class="nav-sec"><span class="nav-lbl">Tài chính</span>
+    <a href="danh-muc-phi.html" class="nav-a">
+        💲 Danh mục khoản phí
+        </a>
+        <a href="hoa-don.html" class="nav-a">
+        🧾 Hóa đơn
+        </a>
+    <a href="khoan-thu.html" class="nav-a">💳 Khoản thu</a>
+    <a href="thu-phi.html" class="nav-a">💰 Thu phí <span class="nbadge red">5</span></a>
+    <a href="lich-su.html" class="nav-a">📜 Lịch sử giao dịch</a>
+  </div>
+  <div class="ndiv"></div>
+  <div class="nav-sec"><span class="nav-lbl">Báo cáo</span>
+    <a href="thong-ke.html" class="nav-a">📈 Thống kê</a>
+  </div>
+  <div class="sidebar-foot">
+    <button class="logout" onclick="handleLogout()">🚪 Đăng xuất</button>
+  </div>
+</aside>
 
 <!-- MAIN -->
 <main>
@@ -87,14 +116,20 @@
     </div>
     <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
       <span style="font-size:12px;color:var(--muted)">Hiển thị <b id="showCount">0</b> / <b id="totalCount">0</b> nhân khẩu</span>
-      <div class="pagination"></div>
+      <div class="pagination">
+        <button class="pg-btn">‹</button>
+        <button class="pg-btn active">1</button>
+        <button class="pg-btn">2</button>
+        <button class="pg-btn">3</button>
+        <button class="pg-btn">›</button>
+      </div>
     </div>
   </div>
 </main>
 
 <!-- FOOTER -->
 <footer>
-  <p>© 2026 <b>Hệ Thống Quản Lý Hộ Dân &amp; Thu Phí</b> — Đồ án Công nghệ Phần mềm – Nhóm 13</p>
+  <p>© 2026 <b>Hệ Thống Quản Lý Hộ Dân & Thu Phí</b> — Đồ án Công nghệ Phần mềm – Nhóm 13</p>
   <div class="flinks"><span>Hướng dẫn</span><span>Hỗ trợ</span></div>
 </footer>
 
@@ -137,7 +172,7 @@
           </div>
         </div>
 
-        <!-- DROPDOWN HỘ GIA ĐÌNH -->
+        <!-- DROPDOWN HỘ GIA ĐÌNH — gọi API GET /api/ho-dan -->
         <div class="form-group">
           <label class="form-label">Thuộc hộ gia đình <span class="required">*</span></label>
           <select id="hoDanId" class="form-control">
@@ -182,17 +217,18 @@
     </div>
     <div class="modal-foot">
       <button class="btn btn-outline" onclick="closeModal()">Hủy</button>
-      <button class="btn btn-primary" id="btnSave" onclick="submitForm()">💾 Lưu</button>
+      <button class="btn btn-primary" onclick="submitForm()">💾 Lưu</button>
     </div>
   </div>
 </div>
 
-<script src="common.js"></script>
-<script src="auth.js"></script>
 <script>
-AUTH.init('nhankhau');
 // ===== CONFIG =====
-// Đã tải từ common.js
+const API = 'http://localhost:8080/api';
+const token = localStorage.getItem('token');
+
+// Bảo vệ route — chưa login thì về trang login
+if (!token) window.location.href = 'login.html';
 
 // ===== BADGE TRẠNG THÁI =====
 const TRANG_THAI_MAP = {
@@ -203,97 +239,46 @@ const TRANG_THAI_MAP = {
 };
 
 function badgeHTML(tt) {
-  if (!tt) return '';
-  const key = tt.toLowerCase().replace(/\s+/g, '_');
-  const m = TRANG_THAI_MAP[key] || { label: tt, cls: 'badge-tam-vang' };
+  const m = TRANG_THAI_MAP[tt] || { label: tt, cls: 'badge-tam-vang' };
   return `<span class="badge ${m.cls}">${m.label}</span>`;
 }
 
-// ===== PHÂN TRANG =====
+// ===== LOAD DANH SÁCH NHÂN KHẨU =====
 let allData = [];
-let currentData = [];
-let currentPage = 1;
-const itemsPerPage = 5;
 
-function renderPage(page) {
-  if (currentData.length === 0) {
-    renderTable([]);
-    renderPagination();
-    return;
-  }
-  if (page < 1 || page > Math.ceil(currentData.length / itemsPerPage)) return;
-  currentPage = page;
-  const start = (page - 1) * itemsPerPage;
-  const end = start + itemsPerPage;
-  renderTable(currentData.slice(start, end));
-  renderPagination();
-}
-
-  function renderPagination() {
-    const totalPages = Math.ceil(currentData.length / itemsPerPage);
-    const container = document.querySelector('.pagination');
-    if (!container) return;
-    let html = `<button class="pg-btn" ${currentPage === 1 ? 'disabled style="opacity:0.5;pointer-events:none;"' : ''} onclick="renderPage(${currentPage - 1})">❮</button>`;
-    
-    const maxVisible = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-    let endPage = startPage + maxVisible - 1;
-    if (endPage > totalPages) {
-        endPage = totalPages;
-        startPage = Math.max(1, endPage - maxVisible + 1);
-    }
-
-    if (startPage > 1) {
-        html += `<button class="pg-btn" onclick="renderPage(1)">1</button>`;
-        if (startPage > 2) html += `<span style="color:var(--muted); margin:0 2px;">...</span>`;
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      html += `<button class="pg-btn ${currentPage === i ? 'active' : ''}" onclick="renderPage(${i})">${i}</button>`;
-    }
-
-    if (endPage < totalPages) {
-        if (endPage < totalPages - 1) html += `<span style="color:var(--muted); margin:0 2px;">...</span>`;
-        html += `<button class="pg-btn" onclick="renderPage(${totalPages})">${totalPages}</button>`;
-    }
-
-    html += `<button class="pg-btn" ${currentPage === totalPages || totalPages === 0 ? 'disabled style="opacity:0.5;pointer-events:none;"' : ''} onclick="renderPage(${currentPage + 1})">❯</button>`;
-    container.innerHTML = html;
-    
-    const showCountEl = document.getElementById("showCount");
-    if(showCountEl) showCountEl.textContent = Math.min(currentPage * itemsPerPage, currentData.length);
-    
-    const totalCountEl = document.getElementById("totalCount");
-    if(totalCountEl) totalCountEl.textContent = currentData.length;
-  }
-
-// ===== LOAD DANH SÁCH =====
 async function loadNhanKhau() {
-  document.getElementById('tableBody').innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">Đang tải dữ liệu...</td></tr>';
+  document.getElementById('tableBody').innerHTML =
+    '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">Đang tải dữ liệu...</td></tr>';
   try {
-    const res = await fetch(`${API}/nhan-khau`, { headers: { 'Authorization': `Bearer ${token}` } });
+    const res = await fetch(`${API}/nhan-khau`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
     if (!res.ok) throw new Error('API Error');
     allData = await res.json();
   } catch {
     allData = MOCK_DATA;
   }
-  currentData = allData;
-  renderPage(1);
+  renderTable(allData);
 }
 
 // ===== RENDER BẢNG =====
 function renderTable(data) {
+  document.getElementById('showCount').textContent = data.length;
+  document.getElementById('totalCount').textContent = allData.length;
+
   if (!data.length) {
-    document.getElementById('tableBody').innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">Không có dữ liệu</td></tr>';
+    document.getElementById('tableBody').innerHTML =
+      '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">Không có dữ liệu</td></tr>';
     return;
   }
+
   document.getElementById('tableBody').innerHTML = data.map((nk, i) => `
     <tr>
-      <td style="color:var(--muted)">${String((currentPage - 1) * itemsPerPage + i + 1).padStart(3, "0")}</td>
+      <td style="color:var(--muted)">${String(i+1).padStart(3,'0')}</td>
       <td><b>${nk.hoTen}</b></td>
       <td>${nk.ngaySinh}</td>
-      <td>${(nk.gioiTinh || '').toLowerCase() === 'nam' ? '👨 Nam' : '👩 Nữ'}</td>
-      <td>${nk.tenChuHo ? nk.tenChuHo + " – " + (nk.canHo || "") : "<i style=\"color:#aaa\">Chưa có hộ</i>"}</td>
+      <td>${nk.gioiTinh === 'nam' ? '👨 Nam' : '👩 Nữ'}</td>
+      <td>${nk.tenChuHo} – ${nk.canHo}</td>
       <td>${quanHeLabel(nk.quanHe)}</td>
       <td>${badgeHTML(nk.trangThai)}</td>
       <td style="display:flex;gap:4px">
@@ -306,22 +291,20 @@ function renderTable(data) {
 }
 
 function quanHeLabel(qh) {
-  if (!qh) return '';
   const map = { chu_ho:'Chủ hộ', vo_chong:'Vợ/Chồng', con:'Con', cha_me:'Cha/Mẹ', khac:'Khác' };
   return map[qh] || qh;
 }
 
-// ===== LỌC =====
+// ===== LỌC BẢNG =====
 function filterTable() {
   const q = document.getElementById('searchInput').value.toLowerCase();
   const tt = document.getElementById('filterTrangThai').value;
-  currentData = allData.filter(nk => {
-    const matchText = ((nk.hoTen||"") + (nk.tenChuHo||"") + (nk.canHo||"")).toLowerCase().includes(q);
-    const nkTt = nk.trangThai ? nk.trangThai.toLowerCase() : '';
-    const matchTT = tt ? nkTt === tt : true;
+  const filtered = allData.filter(nk => {
+    const matchText = (nk.hoTen + nk.tenChuHo + nk.canHo).toLowerCase().includes(q);
+    const matchTT = tt ? nk.trangThai === tt : true;
     return matchText && matchTT;
   });
-  renderPage(1);
+  renderTable(filtered);
 }
 
 // ===== LOAD DROPDOWN HỘ GIA ĐÌNH =====
@@ -329,14 +312,17 @@ async function loadDanhSachHo() {
   const select = document.getElementById('hoDanId');
   select.innerHTML = '<option value="">-- Đang tải... --</option>';
   try {
-    const res = await fetch(`${API}/ho-dan`, { headers: { 'Authorization': `Bearer ${token}` } });
+    const res = await fetch(`${API}/ho-dan`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
     if (!res.ok) throw new Error('API Error');
     const data = await res.json();
     select.innerHTML = `<option value="">-- Chọn hộ gia đình --</option>` +
-      data.map(h => `<option value="${h.id}">${h.tenChuHo} – ${h.soPhong || ""}</option>`).join('');
+      data.map(h => `<option value="${h.id}">${h.tenChuHo} – ${h.canHo}</option>`).join('');
   } catch {
+    // Fallback mock
     select.innerHTML = `<option value="">-- Chọn hộ gia đình --</option>` +
-      MOCK_HO_DAN.map(h => `<option value="${h.id}">${h.tenChuHo} – ${h.canHo || ""}</option>`).join('');
+      MOCK_HO_DAN.map(h => `<option value="${h.id}">${h.tenChuHo} – ${h.canHo}</option>`).join('');
   }
 }
 
@@ -347,6 +333,7 @@ function openModal(mode, data = {}) {
     mode === 'add' ? 'Thêm nhân khẩu mới' :
     mode === 'edit' ? 'Chỉnh sửa nhân khẩu' : 'Chi tiết nhân khẩu';
 
+  // Điền dữ liệu
   document.getElementById('nhanKhauId').value = data.id || '';
   document.getElementById('hoTen').value     = data.hoTen || '';
   document.getElementById('ngaySinh').value  = data.ngaySinh || '';
@@ -354,16 +341,15 @@ function openModal(mode, data = {}) {
   document.getElementById('soCCCD').value    = data.soCCCD || '';
   document.getElementById('quanHe').value    = data.quanHe || 'chu_ho';
   document.getElementById('trangThai').value = data.trangThai || 'thuong_tru';
-  document.getElementById('sdt').value       = data.soDienThoai || '';
-  document.getElementById('ghiChu').value    = '';
+  document.getElementById('sdt').value       = data.sdt || '';
+  document.getElementById('ghiChu').value    = data.ghiChu || '';
 
+  // Readonly nếu chỉ xem
   const readonly = mode === 'view';
   document.querySelectorAll('#nhanKhauForm input, #nhanKhauForm select, #nhanKhauForm textarea')
     .forEach(el => el.disabled = readonly);
 
-  // Ẩn nút Lưu khi chỉ xem
-  document.getElementById('btnSave').style.display = readonly ? 'none' : 'inline-block';
-
+  // Load dropdown hộ dân
   loadDanhSachHo().then(() => {
     if (data.hoDanId) document.getElementById('hoDanId').value = data.hoDanId;
     if (readonly) document.getElementById('hoDanId').disabled = true;
@@ -373,6 +359,7 @@ function openModal(mode, data = {}) {
 function closeModal() {
   document.getElementById('modalOverlay').classList.remove('show');
   document.getElementById('nhanKhauForm').reset();
+  // Xóa hết viền đỏ và thông báo lỗi
   document.querySelectorAll('.error').forEach(e => e.classList.remove('error'));
   document.querySelectorAll('.show-error').forEach(e => e.classList.remove('show-error'));
 }
@@ -380,13 +367,16 @@ function closeModal() {
 // ===== VALIDATION =====
 function validate() {
   let ok = true;
+  // Reset trước
   document.querySelectorAll('.error').forEach(e => e.classList.remove('error'));
   document.querySelectorAll('.show-error').forEach(e => e.classList.remove('show-error'));
+
   const required = {
     hoTen:    v => v.trim().length > 0,
     ngaySinh: v => v.length > 0,
     hoDanId:  v => v.length > 0,
   };
+
   Object.entries(required).forEach(([id, check]) => {
     const el = document.getElementById(id);
     const err = document.getElementById('err-' + id);
@@ -405,14 +395,15 @@ async function submitForm() {
 
   const id = document.getElementById('nhanKhauId').value;
   const body = {
-    hoTen:       document.getElementById('hoTen').value.trim(),
-    ngaySinh:    document.getElementById('ngaySinh').value,
-    gioiTinh:    document.getElementById('gioiTinh').value,
-    soCCCD:      document.getElementById('soCCCD').value || null,
-    hoDanId:     +document.getElementById('hoDanId').value,
-    quanHe:      document.getElementById('quanHe').value,
-    trangThai:   document.getElementById('trangThai').value,
-    soDienThoai: document.getElementById('sdt').value || null,
+    hoTen:     document.getElementById('hoTen').value.trim(),
+    ngaySinh:  document.getElementById('ngaySinh').value,
+    gioiTinh:  document.getElementById('gioiTinh').value,
+    soCCCD:    document.getElementById('soCCCD').value,
+    hoDanId:   document.getElementById('hoDanId').value,
+    quanHe:    document.getElementById('quanHe').value,
+    trangThai: document.getElementById('trangThai').value,
+    sdt:       document.getElementById('sdt').value,
+    ghiChu:    document.getElementById('ghiChu').value.trim(),
   };
 
   try {
@@ -423,15 +414,12 @@ async function submitForm() {
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(body)
     });
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.message || 'Lỗi từ server (mã ' + res.status + ')');
-    }
+    if (!res.ok) throw new Error('API Error');
     closeModal();
     loadNhanKhau();
     alert(id ? 'Cập nhật thành công!' : 'Thêm nhân khẩu thành công!');
-  } catch (e) {
-    alert('Lỗi: ' + e.message);
+  } catch {
+    alert('Không thể kết nối server!');
   }
 }
 
@@ -461,15 +449,20 @@ function handleLogout() {
 
 // ===== DỮ LIỆU MẪU =====
 const MOCK_DATA = [
-  {id:'1',hoTen:'Nguyễn Văn An',ngaySinh:'1985-03-15',gioiTinh:'nam',soCCCD:'001085012345',hoDanId:'1',tenChuHo:'Nguyễn Văn An',canHo:'A1-204',quanHe:'chu_ho',trangThai:'thuong_tru',soDienThoai:'0912345678'},
-  {id:'2',hoTen:'Trần Thị Bình',ngaySinh:'1990-07-22',gioiTinh:'nu', soCCCD:'001090023456',hoDanId:'2',tenChuHo:'Trần Thị Bình',canHo:'A1-310',quanHe:'chu_ho',trangThai:'thuong_tru',soDienThoai:'0987654321'},
-  {id:'3',hoTen:'Nguyễn Văn Bé', ngaySinh:'2015-01-10',gioiTinh:'nam',soCCCD:'',           hoDanId:'1',tenChuHo:'Nguyễn Văn An', canHo:'A1-204',quanHe:'con',    trangThai:'thuong_tru',soDienThoai:''},
+  {id:'1',hoTen:'Nguyễn Văn An',ngaySinh:'1985-03-15',gioiTinh:'nam',soCCCD:'001085012345',hoDanId:'1',tenChuHo:'Nguyễn Văn An',canHo:'A1-204',quanHe:'chu_ho',trangThai:'thuong_tru',sdt:'0912345678'},
+  {id:'2',hoTen:'Trần Thị Bình',ngaySinh:'1990-07-22',gioiTinh:'nu', soCCCD:'001090023456',hoDanId:'2',tenChuHo:'Trần Thị Bình',canHo:'A1-310',quanHe:'chu_ho',trangThai:'thuong_tru',sdt:'0987654321'},
+  {id:'3',hoTen:'Nguyễn Văn Bé', ngaySinh:'2015-01-10',gioiTinh:'nam',soCCCD:'',           hoDanId:'1',tenChuHo:'Nguyễn Văn An', canHo:'A1-204',quanHe:'con',    trangThai:'thuong_tru',sdt:''},
+  {id:'4',hoTen:'Lê Minh Châu',  ngaySinh:'1978-11-05',gioiTinh:'nam',soCCCD:'001078034567',hoDanId:'3',tenChuHo:'Lê Minh Châu',  canHo:'B2-108',quanHe:'chu_ho',trangThai:'tam_tru',  sdt:'0901111222'},
+  {id:'5',hoTen:'Hoàng Thị Mai', ngaySinh:'1995-06-18',gioiTinh:'nu', soCCCD:'001095045678',hoDanId:'5',tenChuHo:'Hoàng Thị Lan', canHo:'C3-402',quanHe:'con',   trangThai:'tam_vang', sdt:'0966333444'},
+  {id:'6',hoTen:'Phạm Văn Cũ',   ngaySinh:'1960-04-30',gioiTinh:'nam',soCCCD:'001060056789',hoDanId:'4',tenChuHo:'Phạm Đức Dũng', canHo:'B2-205',quanHe:'cha_me',trangThai:'chuyen_di',sdt:''},
 ];
 
 const MOCK_HO_DAN = [
   {id:'1',tenChuHo:'Nguyễn Văn An',canHo:'A1-204'},
   {id:'2',tenChuHo:'Trần Thị Bình',canHo:'A1-310'},
   {id:'3',tenChuHo:'Lê Minh Châu', canHo:'B2-108'},
+  {id:'4',tenChuHo:'Phạm Đức Dũng',canHo:'B2-205'},
+  {id:'5',tenChuHo:'Hoàng Thị Lan',canHo:'C3-402'},
 ];
 
 // Khởi động

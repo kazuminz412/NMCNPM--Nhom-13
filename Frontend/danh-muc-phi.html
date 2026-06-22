@@ -33,28 +33,7 @@
 
 <!-- SIDEBAR -->
 <aside>
-  <div class="nav-sec"><span class="nav-lbl">Tổng quan</span>
-    <a href="dashboard.html" class="nav-a">📊 Bảng điều khiển </a>
-  </div>
-  <div class="ndiv"></div>
-  <div class="nav-sec"><span class="nav-lbl">Quản lý dân cư</span>
-    <a href="ho-dan.html" class="nav-a">🏠 Hộ dân <span class="nbadge">248</span></a>
-    <a href="nhan-khau.html" class="nav-a">👥 Nhân khẩu </a>
-    <a href="phuong-tien.html" class="nav-a">🚗 Phương tiện </a>
-  </div>
-  <div class="ndiv"></div>
-  <div class="nav-sec"><span class="nav-lbl">Tài chính</span>
-    <a href="danh-muc-phi.html" class="nav-a active">💲 Danh mục khoản phí </a>
-    <a href="hoa-don.html" class="nav-a">🧾 Hóa đơn </a>
-    <a href="thanh-toan.html" class="nav-a">💳 Thanh toán </a>
-    <a href="khoan-thu.html" class="nav-a">📋 Khoản thu </a>
-    <a href="thu-phi.html" class="nav-a">💰 Thu phí <span class="nbadge red">5</span></a>
-    <a href="lich-su.html" class="nav-a">📜 Lịch sử giao dịch </a>
-  </div>
-  <div class="ndiv"></div>
-  <div class="nav-sec"><span class="nav-lbl">Báo cáo</span>
-    <a href="thong-ke.html" class="nav-a">📈 Thống kê </a>
-  </div>
+  
   <div class="sidebar-foot"><button class="logout" onclick="handleLogout()">🚪 Đăng xuất</button></div>
 </aside>
 
@@ -311,5 +290,10 @@ const MOCK_DATA = [
 
 loadData();
 </script>
+<script src="auth.js"></script>
+<script>
+AUTH.init('danhmucphi');
+</script>
 </body>
 </html>
+

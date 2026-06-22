@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-@CrossOrigin(origins = "*") // MỞ CỬA CHO FRONTEND GỌI API
 @RestController
 @RequestMapping("/api/nhan-khau") 
 @RequiredArgsConstructor

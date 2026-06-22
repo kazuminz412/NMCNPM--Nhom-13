@@ -102,33 +102,7 @@
     </header>
 
     <aside>
-      <div class="nav-sec">
-        <span class="nav-lbl">Tổng quan</span
-        ><a href="dashboard.html" class="nav-a">📊 Bảng điều khiển</a>
-      </div>
-      <div class="ndiv"></div>
-      <div class="nav-sec">
-        <span class="nav-lbl">Quản lý dân cư</span>
-        <a href="ho-dan.html" class="nav-a">🏠 Hộ dân</a>
-        <a href="nhan-khau.html" class="nav-a">👥 Nhân khẩu</a>
-      </div>
-      <div class="ndiv"></div>
-      <div class="nav-sec">
-        <span class="nav-lbl">Tài chính</span>
-        <a href="danh-muc-phi.html" class="nav-a">
-        💲 Danh mục khoản phí
-        </a>
-        <a href="hoa-don.html" class="nav-a">
-        🧾 Hóa đơn
-        </a>
-        <a href="khoan-thu.html" class="nav-a">💳 Khoản thu</a>
-        <a href="thu-phi.html" class="nav-a">💰 Thu phí</a>
-      </div>
-      <div class="ndiv"></div>
-      <div class="nav-sec">
-        <span class="nav-lbl">Báo cáo</span
-        ><a href="thong-ke.html" class="nav-a active">📈 Thống kê</a>
-      </div>
+      
       <div class="sidebar-foot">
         <button class="logout" onclick="handleLogout()">🚪 Đăng xuất</button>
       </div>
@@ -227,7 +201,11 @@
       <div class="flinks"><span>Hướng dẫn</span><span>Hỗ trợ</span></div>
     </footer>
 
-    <script>
+    <script src="common.js"></script>
+<script src="auth.js"></script>
+<script>
+  try { AUTH.init('thongke'); } catch(e){}
+
       const MOCK_STATS = [
         {
           tenKhoanThu: "Phí vệ sinh",
@@ -313,6 +291,8 @@
 
       loadData();
     </script>
-    <script src="common.js"></script>
-  </body>
+    
+  `n</body>
 </html>
+
+

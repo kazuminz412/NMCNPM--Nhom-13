@@ -8,17 +8,18 @@ import lombok.*;
 @Table(name = "danh_muc_phi") 
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
+@com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class DanhMucPhi extends BaseEntity {
 
-    // Đã sửa tên biến thành tenPhi để hứng đúng dữ liệu JSON từ Frontend
+    // ÄÃ£ sá»­a tÃªn biáº¿n thÃ nh tenPhi Ä‘á»ƒ há»©ng Ä‘Ãºng dá»¯ liá»‡u JSON tá»« Frontend
     @Column(name = "ten_phi", nullable = false)
     private String tenPhi; 
 
     @Column(name = "loai_phi", nullable = false)
     private String loaiPhi; // bat_buoc / tu_nguyen
 
-    // Đơn giá dùng Long để tránh sai số tiền tệ
-    @Min(value = 0, message = "Đơn giá không được phép là số âm!")
+    // ÄÆ¡n giÃ¡ dÃ¹ng Long Ä‘á»ƒ trÃ¡nh sai sá»‘ tiá»n tá»‡
+    @Min(value = 0, message = "ÄÆ¡n giÃ¡ khÃ´ng Ä‘Æ°á»£c phÃ©p lÃ  sá»‘ Ã¢m!")
     @Column(name = "don_gia", nullable = false)
     private Long donGia; 
 
@@ -32,5 +33,6 @@ public class DanhMucPhi extends BaseEntity {
     private String moTa;
 
     @Column(name = "chu_ky")
-    private String chuKy; // Có thể giữ lại nếu nhóm muốn dùng
+    private String chuKy; // CÃ³ thá»ƒ giá»¯ láº¡i náº¿u nhÃ³m muá»‘n dÃ¹ng
 }
+
