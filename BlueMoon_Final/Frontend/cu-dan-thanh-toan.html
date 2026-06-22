@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Thanh Toán – Cư Dân</title>
+<style>
+/* Base CSS from other files */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --primary:#1B4F72;--primary-light:#2E86C1;--primary-pale:#D6EAF8;
+  --accent:#F39C12;--success:#1E8449;--success-bg:#D5F5E3;
+  --danger:#C0392B;--danger-bg:#FADBD8;
+  --bg:#EEF2F7;--surface:#fff;--text:#1A252F;--muted:#5D6D7E;
+  --border:#D5DBDB;--radius:10px;
+}
+body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+.hdr{background:var(--primary);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between;position:fixed;top:0;left:0;right:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.hdr-logo{display:flex;align-items:center;gap:10px}
+.hdr-icon{width:34px;height:34px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px}
+.hdr-title{font-size:13px;font-weight:700;color:#fff}
+.hdr-sub{font-size:10px;color:rgba(255,255,255,.5)}
+.hdr-right{display:flex;align-items:center;gap:8px}
+.user-info{text-align:right}
+.user-info .name{font-size:12.5px;font-weight:600;color:#fff}
+.user-info .room{font-size:10px;color:rgba(255,255,255,.6)}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff}
+.btn-logout{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;padding:5px 10px;border-radius:6px;font-size:11.5px;cursor:pointer;font-family:inherit}
+
+.nav-tabs{background:#fff;border-bottom:1px solid var(--border);padding:0 20px;display:flex;gap:0;margin-top:56px;position:sticky;top:56px;z-index:90}
+.tab{padding:14px 20px;font-size:13.5px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;transition:all .15s;text-decoration:none;display:flex;align-items:center;gap:6px}
+.tab.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:600}
+
+.content{padding:24px 20px;max-width:800px;margin:0 auto}
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:18px}
+.card-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-ttl{font-size:14px;font-weight:700;color:var(--text)}
+
+.invoice-list{padding:14px}
+.invoice-item{padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:all .2s}
+.invoice-item:hover{border-color:var(--primary);background:var(--primary-pale)}
+.invoice-item.active{border-color:var(--primary);background:var(--primary-pale);box-shadow:0 0 0 2px rgba(27,79,114,.1)}
+.inv-title{font-weight:600;font-size:14px}
+.inv-amt{font-weight:700;color:var(--primary);font-size:15px}
+
+.qr-section{padding:24px;text-align:center;background:#F8FAFC}
+.qr-img{width:220px;height:220px;background:#fff;border:1px solid var(--border);border-radius:12px;margin:16px auto;padding:10px}
+.qr-img img{width:100%;height:100%;object-fit:contain}
+.instruction{font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.5}
+.bank-info{background:#fff;border:1px solid var(--border);border-radius:8px;padding:16px;text-align:left;max-width:350px;margin:0 auto}
+.bank-row{display:flex;justify-content:space-between;margin-bottom:8px;font-size:13px}
+.bank-lbl{color:var(--muted)}
+.bank-val{font-weight:600;color:var(--text)}
+
+footer{background:#fff;border-top:1px solid var(--border);padding:12px 20px;text-align:center;font-size:11.5px;color:var(--muted);margin-top:20px}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-logo">
+    <div class="hdr-icon">🏢</div>
+    <div><div class="hdr-title">BlueMoon</div><div class="hdr-sub">Cổng thông tin cư dân</div></div>
+  </div>
+  <div class="hdr-right">
+    <div class="user-info">
+      <div class="name" id="hdr-name">—</div>
+      <div class="room" id="hdr-room">—</div>
+    </div>
+    <div class="avatar" id="hdr-avatar">U</div>
+    <button class="btn-logout" onclick="AUTH.logout()">🚪 Đăng xuất</button>
+  </div>
+</header>
+
+<nav class="nav-tabs">
+  <a href="cu-dan-nha-toi.html" class="tab ">🏠 Nhà của tôi</a>
+  <a href="cu-dan-hoa-don.html" class="tab ">🧾 Hóa đơn</a>
+  <a href="cu-dan-thanh-toan.html" class="tab active">💳 Thanh toán</a>
+  <a href="cu-dan-lich-su.html" class="tab ">📜 Lịch sử</a>
+</nav>
+
+<div class="content">
+  <div class="card">
+    <div class="card-hdr">
+      <div class="card-ttl">⚠️ Các hóa đơn cần thanh toán</div>
+    </div>
+    <div class="invoice-list" id="unpaidList">
+      <div style="text-align:center;padding:20px;color:var(--muted)">Đang tải dữ liệu...</div>
+    </div>
+  </div>
+
+  <div class="card" id="voluntaryCard">
+    <div class="card-hdr">
+      <div class="card-ttl">❤️ Đăng ký Dịch vụ & Đóng góp tự nguyện</div>
+    </div>
+    <div class="invoice-list" id="voluntaryList">
+      <div style="text-align:center;padding:20px;color:var(--muted)">Đang tải danh sách...</div>
+    </div>
+  </div>
+
+  <div class="card" id="paymentSection" style="display:none">
+    <div class="card-hdr">
+      <div class="card-ttl">💳 Hướng dẫn thanh toán chuyển khoản</div>
+    </div>
+    <div class="qr-section">
+      <p class="instruction">
+        Vui lòng mở ứng dụng ngân hàng và <b>quét mã QR</b> dưới đây để thanh toán.<br>
+        Ban quản lý sẽ tự động xác nhận và cập nhật trạng thái hóa đơn sau khi nhận được tiền.
+      </p>
+      
+      <div class="qr-img">
+        <img id="qrCode" src="https://img.vietqr.io/image/vcb-0123456789-compact2.png" alt="QR Code"/>
+      </div>
+
+      <div class="bank-info">
+        <div class="bank-row">
+          <span class="bank-lbl">Ngân hàng</span>
+          <span class="bank-val">Vietcombank</span>
+        </div>
+        <div class="bank-row">
+          <span class="bank-lbl">Chủ tài khoản</span>
+          <span class="bank-val">BQL Chung cu BlueMoon</span>
+        </div>
+        <div class="bank-row">
+          <span class="bank-lbl">Số tài khoản</span>
+          <span class="bank-val">0123456789</span>
+        </div>
+        <div class="bank-row" style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)">
+          <span class="bank-lbl">Số tiền</span>
+          <span class="bank-val" style="color:var(--primary);font-size:16px" id="payAmount">0đ</span>
+        </div>
+        <div class="bank-row">
+          <span class="bank-lbl">Nội dung CK</span>
+          <span class="bank-val" id="payContent">HD...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer><p>© 2026 <b>BlueMoon</b> – Cổng thông tin cư dân – Nhóm 13</p></footer>
+
+<script src="auth.js"></script>
+<script>
+AUTH.init('cudanthanhtoan');
+
+const API = 'http://localhost:8080/api';
+const token = AUTH.token;
+const user  = AUTH.user;
+
+document.getElementById('hdr-name').textContent   = user.hoTen || user.username || '—';
+document.getElementById('hdr-avatar').textContent = (user.hoTen || user.username || 'U')[0].toUpperCase();
+document.getElementById('hdr-room').textContent    = `Căn hộ ${user.canHo || '—'}`;
+
+let unpaidInvoices = [];
+
+async function loadData() {
+  try {
+    const res = await fetch(`${API}/me/hoa-don`, {
+      headers: {'Authorization': `Bearer ${token}`}
+    });
+    if (res.ok) {
+      const rawData = await res.json();
+      let grouped = {};
+      rawData.forEach(hd => {
+         if (!grouped[hd.thang]) {
+            grouped[hd.thang] = { ...hd, chiTietList: hd.chiTietList ? [...hd.chiTietList] : [] };
+            grouped[hd.thang].mergedIds = new Set([hd.id]);
+         } else {
+            if (!grouped[hd.thang].mergedIds.has(hd.id)) {
+               grouped[hd.thang].tongTien += hd.tongTien;
+               if (hd.chiTietList) grouped[hd.thang].chiTietList.push(...hd.chiTietList);
+               grouped[hd.thang].mergedIds.add(hd.id);
+            }
+         }
+      });
+      const data = Object.values(grouped).map(hd => {
+         let allPaid = true; let allUnpaid = true; let hasRequired = false;
+         (hd.chiTietList || []).forEach(c => {
+            hasRequired = true;
+            if (c.trangThai === 'da_dong') allUnpaid = false;
+            if (c.trangThai === 'chua_dong') allPaid = false;
+         });
+         if (hasRequired) {
+            if (allPaid) hd.trangThai = 'da_thanh_toan';
+            else if (allUnpaid) hd.trangThai = 'chua_thanh_toan';
+            else hd.trangThai = 'mot_phan';
+         }
+         return hd;
+      });
+      // Filter unpaid
+      unpaidInvoices = data.filter(d => d.trangThai !== 'da_thanh_toan');
+    }
+  } catch(e) {
+    console.error(e);
+  }
+
+  renderList();
+}
+
+function renderList() {
+  const listEl = document.getElementById('unpaidList');
+  if (unpaidInvoices.length === 0) {
+    listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--success);font-weight:600">✅ Chúc mừng! Bạn không có hóa đơn nào chưa thanh toán.</div>';
+    document.getElementById('paymentSection').style.display = 'none';
+    return;
+  }
+
+  listEl.innerHTML = unpaidInvoices.map((inv, idx) => {
+    let daDong = (inv.chiTietList || []).filter(c => c.trangThai === 'da_dong').reduce((sum, c) => sum + c.thanhTien, 0);
+    let conLai = inv.tongTien - daDong;
+    
+    return `
+    <div class="invoice-item" id="inv-${inv.id}" onclick="selectInvoice(${idx})">
+      <div>
+        <div class="inv-title">Hóa đơn tháng ${inv.thang.split('-').reverse().join('/')}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px">Mã HĐ: HD-${inv.id}</div>
+      </div>
+      <div class="inv-amt">${conLai.toLocaleString('vi-VN')}đ</div>
+    </div>
+  `}).join('');
+
+  // Auto select first
+  selectInvoice(0);
+}
+
+function selectInvoice(idx) {
+  // Update active class
+  document.querySelectorAll('.invoice-item').forEach(el => el.classList.remove('active'));
+  const inv = unpaidInvoices[idx];
+  document.getElementById(`inv-${inv.id}`).classList.add('active');
+
+  let daDong = (inv.chiTietList || []).filter(c => c.trangThai === 'da_dong').reduce((sum, c) => sum + c.thanhTien, 0);
+  let conLai = inv.tongTien - daDong;
+
+  // Update Payment info
+  document.getElementById('paymentSection').style.display = 'block';
+  document.getElementById('payAmount').textContent = conLai.toLocaleString('vi-VN') + 'đ';
+  const noidung = `HD${inv.id} CANHO${user.canHo||'X'}`;
+  document.getElementById('payContent').textContent = noidung;
+
+  // Generate VietQR URL
+  const qrUrl = `https://img.vietqr.io/image/vcb-0123456789-compact2.png?amount=${conLai}&addInfo=${encodeURIComponent(noidung)}&accountName=BQL CHUNG CU BLUEMOON`;
+  document.getElementById('qrCode').src = qrUrl;
+  
+  const confirmBtn = document.getElementById('confirmVoluntaryBtn');
+  if (confirmBtn) confirmBtn.style.display = 'none';
+}
+
+let voluntaryFunds = [];
+
+async function loadVoluntaryData() {
+  try {
+    const res = await fetch(`${API}/danh-muc-phi`, {
+      headers: {'Authorization': `Bearer ${token}`}
+    });
+    if (res.ok) {
+      const allFees = await res.json();
+      // Lấy cả phí Tự nguyện và Phí Dịch vụ
+      voluntaryFunds = allFees.filter(f => f.loaiPhi === 'tu_nguyen' || f.loaiPhi === 'dich_vu');
+      renderVoluntaryList();
+    }
+  } catch(e) { console.error(e); }
+}
+
+function renderVoluntaryList() {
+  const listEl = document.getElementById('voluntaryList');
+  if (voluntaryFunds.length === 0) {
+    listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted)">Hiện chưa có chương trình đóng góp tự nguyện nào.</div>';
+    return;
+  }
+  
+  listEl.innerHTML = voluntaryFunds.map(f => {
+    const isFixedPrice = f.donGia > 0;
+    
+    if (isFixedPrice) {
+      return `
+      <div class="invoice-item" style="display:flex; align-items:center; justify-content:space-between">
+        <div class="inv-info">
+          <div class="inv-title">${f.tenPhi}</div>
+          <div style="font-size:12px;color:var(--muted)">Đơn giá: ${f.donGia.toLocaleString('vi-VN')}đ</div>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <input type="number" id="volQty_${f.id}" class="form-control" style="width:70px; height:32px; padding:0 8px; border-radius:6px; font-size:13px; text-align:center" placeholder="SL..." value="1" min="1" oninput="updateVolTotal(${f.id}, ${f.donGia})"/>
+          <div style="font-weight:600; width:80px; text-align:right" id="volTotal_${f.id}">${f.donGia.toLocaleString('vi-VN')}đ</div>
+          <button class="btn-login" style="width:auto; height:32px; padding:0 12px; font-size:12px" onclick="payVoluntaryService(${f.id}, '${f.tenPhi}', ${f.donGia})">Thanh toán</button>
+        </div>
+      </div>
+      `;
+    } else {
+      return `
+      <div class="invoice-item" style="display:flex; align-items:center; justify-content:space-between">
+        <div class="inv-info">
+          <div class="inv-title">${f.tenPhi}</div>
+          <div style="font-size:12px;color:var(--muted)">Đóng góp tùy tâm</div>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <input type="number" id="volAmount_${f.id}" class="form-control" style="width:120px; height:32px; padding:0 8px; border-radius:6px; font-size:13px; text-align:right" placeholder="Số tiền..." value="50000"/>
+          <button class="btn-login" style="width:auto; height:32px; padding:0 12px; font-size:12px" onclick="payVoluntary(${f.id}, '${f.tenPhi}')">Đóng góp</button>
+        </div>
+      </div>
+      `;
+    }
+  }).join('');
+}
+
+function updateVolTotal(feeId, donGia) {
+  const qtyStr = document.getElementById(`volQty_${feeId}`).value;
+  const qty = parseInt(qtyStr) || 0;
+  const total = qty * donGia;
+  document.getElementById(`volTotal_${feeId}`).textContent = total.toLocaleString('vi-VN') + 'đ';
+}
+
+let activeVoluntaryFeeId = null;
+let activeVoluntaryAmount = 0;
+let activeVoluntaryQty = 1;
+
+function payVoluntaryService(feeId, feeName, donGia) {
+  document.querySelectorAll('.invoice-item').forEach(el => el.classList.remove('active'));
+  
+  const qtyStr = document.getElementById(`volQty_${feeId}`).value;
+  const qty = parseInt(qtyStr);
+  if (!qty || qty < 1) {
+    alert("Vui lòng nhập số lượng hợp lệ (Tối thiểu 1)");
+    return;
+  }
+  const amount = qty * donGia;
+  activeVoluntaryQty = qty;
+  _showVoluntaryPayment(feeId, feeName, amount);
+}
+
+function payVoluntary(feeId, feeName) {
+  document.querySelectorAll('.invoice-item').forEach(el => el.classList.remove('active'));
+  
+  const amountStr = document.getElementById(`volAmount_${feeId}`).value;
+  const amount = parseInt(amountStr);
+  if (!amount || amount < 1000) {
+    alert("Vui lòng nhập số tiền hợp lệ (Tối thiểu 1000đ)");
+    return;
+  }
+  activeVoluntaryQty = 1;
+  _showVoluntaryPayment(feeId, feeName, amount);
+}
+
+function _showVoluntaryPayment(feeId, feeName, amount) {
+  activeVoluntaryFeeId = feeId;
+  activeVoluntaryAmount = amount;
+  
+  document.getElementById('paymentSection').style.display = 'block';
+  document.getElementById('payAmount').textContent = amount.toLocaleString('vi-VN') + 'đ';
+  
+  const room = user.canHo || user.username;
+  const noidung = `P${room} THANH TOAN ${feeName}`;
+  document.getElementById('payContent').textContent = noidung;
+  
+  const qrUrl = `https://img.vietqr.io/image/vcb-0123456789-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(noidung)}&accountName=BQL CHUNG CU BLUEMOON`;
+  document.getElementById('qrCode').src = qrUrl;
+  
+  let confirmBtn = document.getElementById('confirmVoluntaryBtn');
+  if (!confirmBtn) {
+    confirmBtn = document.createElement('button');
+    confirmBtn.id = 'confirmVoluntaryBtn';
+    confirmBtn.className = 'btn-login';
+    confirmBtn.style.marginTop = '15px';
+    confirmBtn.innerHTML = 'Tôi đã chuyển khoản thành công';
+    confirmBtn.onclick = confirmVoluntaryPayment;
+    document.querySelector('.bank-info').appendChild(confirmBtn);
+  }
+  confirmBtn.style.display = 'block';
+  
+  document.getElementById('paymentSection').scrollIntoView({behavior: 'smooth'});
+}
+
+async function confirmVoluntaryPayment() {
+  if (!activeVoluntaryFeeId) return;
+  const btn = document.getElementById('confirmVoluntaryBtn');
+  btn.disabled = true;
+  btn.innerHTML = 'Đang xử lý...';
+  
+  try {
+    const res = await fetch(`${API}/me/tu-nguyen`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        danhMucPhiId: activeVoluntaryFeeId,
+        soTienNop: activeVoluntaryAmount,
+        soLuong: activeVoluntaryQty,
+        ghiChu: document.getElementById('payContent').textContent
+      })
+    });
+    if (res.ok) {
+      alert("Cảm ơn bạn đã đóng góp thành công!");
+      document.getElementById('paymentSection').style.display = 'none';
+      loadData(); // Tải lại hóa đơn
+    } else {
+      const txt = await res.text();
+      alert("Lỗi: " + txt);
+    }
+  } catch (e) {
+    alert("Lỗi kết nối");
+  }
+  
+  btn.disabled = false;
+  btn.innerHTML = 'Tôi đã chuyển khoản thành công';
+  activeVoluntaryFeeId = null;
+}
+
+loadData();
+loadVoluntaryData();
+</script>
+</body>
+</html>

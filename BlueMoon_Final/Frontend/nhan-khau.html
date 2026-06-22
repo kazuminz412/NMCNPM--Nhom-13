@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Nhân Khẩu – Quản Lý Hộ Dân</title>
+<link rel="stylesheet" href="layout.css"/>
+<style>
+.badge-thuong-tru { background:#D5F5E3; color:#1E8449; }
+.badge-tam-tru    { background:#D6EAF8; color:#1B4F72; }
+.badge-tam-vang   { background:#FEF9E7; color:#B7770D; }
+.badge-chuyen-di  { background:#F2F3F4; color:#717D7E; }
+.toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:10px;flex-wrap:wrap}
+.search-tbl{position:relative}
+.search-tbl input{height:34px;border:1px solid var(--border);border-radius:6px;padding:0 10px 0 32px;font-size:12.5px;font-family:inherit;outline:none;width:240px}
+.search-tbl input:focus{border-color:var(--primary)}
+.search-tbl span{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--muted)}
+.pagination{display:flex;align-items:center;gap:6px;margin-top:14px;justify-content:flex-end}
+.pg-btn{width:30px;height:30px;border:1px solid var(--border);border-radius:5px;background:#fff;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center}
+.pg-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.pg-btn:hover:not(.active){border-color:var(--primary);color:var(--primary)}
+.form-error.show-error, .form-control.error + .form-error { display: block; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="hdr-logo">
+    <div class="hdr-icon">🏢</div>
+    <div><div class="hdr-title">Quản Lý Hộ Dân</div><div class="hdr-sub">BlueMoon – v1.0</div></div>
+  </div>
+  <div class="hdr-mid">
+    <div class="search-wrap"><span class="search-icon">🔍</span><input placeholder="Tìm kiếm..."/></div>
+    <nav class="breadcrumb">🏠 / <b>Nhân khẩu</b></nav>
+  </div>
+  <div class="hdr-right">
+    <button class="hbtn">🔔</button>
+    <button class="hbtn">⚙️</button>
+    <div class="upill"><div class="uavatar">AD</div><div><div class="uname">Admin</div><div class="urole">Quản trị viên</div></div></div>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<aside></aside>
+
+<!-- MAIN -->
+<main>
+  <div class="page-head"><h1>Quản Lý Nhân Khẩu</h1></div>
+
+  <div class="card">
+    <div class="card-hdr">
+      <div class="card-ttl">👥 Danh sách nhân khẩu</div>
+      <div style="display:flex;gap:8px">
+        <div class="search-tbl">
+          <span>🔍</span>
+          <input type="text" id="searchInput" placeholder="Tìm theo tên, hộ dân..." oninput="filterTable()"/>
+        </div>
+        <select class="form-control" id="filterTrangThai" style="width:160px;height:34px" onchange="filterTable()">
+          <option value="">Tất cả trạng thái</option>
+          <option value="thuong_tru">Thường trú</option>
+          <option value="tam_tru">Tạm trú</option>
+          <option value="tam_vang">Tạm vắng</option>
+          <option value="chuyen_di">Đã chuyển đi</option>
+        </select>
+        <button class="btn btn-primary" onclick="openModal('add')">＋ Thêm nhân khẩu</button>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Họ và tên</th>
+            <th>Ngày sinh</th>
+            <th>Giới tính</th>
+            <th>Hộ gia đình</th>
+            <th>Quan hệ</th>
+            <th>Trạng thái</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">Đang tải dữ liệu...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:12px;color:var(--muted)">Hiển thị <b id="showCount">0</b> / <b id="totalCount">0</b> nhân khẩu</span>
+      <div class="pagination"></div>
+    </div>
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2026 <b>Hệ Thống Quản Lý Hộ Dân &amp; Thu Phí</b> — Đồ án Công nghệ Phần mềm – Nhóm 13</p>
+  <div class="flinks"><span>Hướng dẫn</span><span>Hỗ trợ</span></div>
+</footer>
+
+<!-- MODAL THÊM / SỬA NHÂN KHẨU -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" style="width:580px">
+    <div class="modal-hdr">
+      <span class="modal-ttl" id="modalTitle">Thêm nhân khẩu mới</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="nhanKhauForm" novalidate>
+        <input type="hidden" id="nhanKhauId"/>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Họ và tên <span class="required">*</span></label>
+            <input type="text" id="hoTen" class="form-control" placeholder="Nguyễn Văn A"/>
+            <div class="form-error" id="err-hoTen">Vui lòng nhập họ tên</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ngày sinh <span class="required">*</span></label>
+            <input type="date" id="ngaySinh" class="form-control"/>
+            <div class="form-error" id="err-ngaySinh">Vui lòng chọn ngày sinh</div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Giới tính <span class="required">*</span></label>
+            <select id="gioiTinh" class="form-control">
+              <option value="nam">Nam</option>
+              <option value="nu">Nữ</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Số CCCD</label>
+            <input type="text" id="soCCCD" class="form-control" placeholder="0xxxxxxxxxx" maxlength="12"
+              oninput="this.value=this.value.replace(/[^0-9]/g,'')"/>
+          </div>
+        </div>
+
+        <!-- DROPDOWN HỘ GIA ĐÌNH -->
+        <div class="form-group">
+          <label class="form-label">Thuộc hộ gia đình <span class="required">*</span></label>
+          <select id="hoDanId" class="form-control">
+            <option value="">-- Đang tải danh sách hộ... --</option>
+          </select>
+          <div class="form-error" id="err-hoDanId">Vui lòng chọn hộ gia đình</div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Quan hệ với chủ hộ <span class="required">*</span></label>
+            <select id="quanHe" class="form-control">
+              <option value="chu_ho">Chủ hộ</option>
+              <option value="vo_chong">Vợ/Chồng</option>
+              <option value="con">Con</option>
+              <option value="cha_me">Cha/Mẹ</option>
+              <option value="khac">Khác</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Trạng thái cư trú <span class="required">*</span></label>
+            <select id="trangThai" class="form-control">
+              <option value="thuong_tru">Thường trú</option>
+              <option value="tam_tru">Tạm trú</option>
+              <option value="tam_vang">Tạm vắng</option>
+              <option value="chuyen_di">Đã chuyển đi</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Số điện thoại</label>
+          <input type="text" id="sdt" class="form-control" placeholder="09xxxxxxxx" maxlength="10"
+            oninput="this.value=this.value.replace(/[^0-9]/g,'')"/>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Ghi chú</label>
+          <textarea id="ghiChu" class="form-control" placeholder="Ghi chú thêm..."></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal()">Hủy</button>
+      <button class="btn btn-primary" id="btnSave" onclick="submitForm()">💾 Lưu</button>
+    </div>
+  </div>
+</div>
+
+<script src="common.js"></script>
+<script src="auth.js"></script>
+<script>
+AUTH.init('nhankhau');
+// ===== CONFIG =====
+// Đã tải từ common.js
+
+// ===== BADGE TRẠNG THÁI =====
+const TRANG_THAI_MAP = {
+  thuong_tru: { label: 'Thường trú',   cls: 'badge-thuong-tru' },
+  tam_tru:    { label: 'Tạm trú',      cls: 'badge-tam-tru'    },
+  tam_vang:   { label: 'Tạm vắng',     cls: 'badge-tam-vang'   },
+  chuyen_di:  { label: 'Đã chuyển đi', cls: 'badge-chuyen-di'  },
+};
+
+function badgeHTML(tt) {
+  if (!tt) return '';
+  const key = tt.toLowerCase().replace(/\s+/g, '_');
+  const m = TRANG_THAI_MAP[key] || { label: tt, cls: 'badge-tam-vang' };
+  return `<span class="badge ${m.cls}">${m.label}</span>`;
+}
+
+// ===== PHÂN TRANG =====
+let allData = [];
+let currentData = [];
+let currentPage = 1;
+const itemsPerPage = 5;
+
+function renderPage(page) {
+  if (currentData.length === 0) {
+    renderTable([]);
+    renderPagination();
+    return;
+  }
+  if (page < 1 || page > Math.ceil(currentData.length / itemsPerPage)) return;
+  currentPage = page;
+  const start = (page - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  renderTable(currentData.slice(start, end));
+  renderPagination();
+}
+
+  function renderPagination() {
+    const totalPages = Math.ceil(currentData.length / itemsPerPage);
+    const container = document.querySelector('.pagination');
+    if (!container) return;
+    let html = `<button class="pg-btn" ${currentPage === 1 ? 'disabled style="opacity:0.5;pointer-events:none;"' : ''} onclick="renderPage(${currentPage - 1})">❮</button>`;
+    
+    const maxVisible = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let endPage = startPage + maxVisible - 1;
+    if (endPage > totalPages) {
+        endPage = totalPages;
+        startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+
+    if (startPage > 1) {
+        html += `<button class="pg-btn" onclick="renderPage(1)">1</button>`;
+        if (startPage > 2) html += `<span style="color:var(--muted); margin:0 2px;">...</span>`;
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      html += `<button class="pg-btn ${currentPage === i ? 'active' : ''}" onclick="renderPage(${i})">${i}</button>`;
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) html += `<span style="color:var(--muted); margin:0 2px;">...</span>`;
+        html += `<button class="pg-btn" onclick="renderPage(${totalPages})">${totalPages}</button>`;
+    }
+
+    html += `<button class="pg-btn" ${currentPage === totalPages || totalPages === 0 ? 'disabled style="opacity:0.5;pointer-events:none;"' : ''} onclick="renderPage(${currentPage + 1})">❯</button>`;
+    container.innerHTML = html;
+    
+    const showCountEl = document.getElementById("showCount");
+    if(showCountEl) showCountEl.textContent = Math.min(currentPage * itemsPerPage, currentData.length);
+    
+    const totalCountEl = document.getElementById("totalCount");
+    if(totalCountEl) totalCountEl.textContent = currentData.length;
+  }
+
+// ===== LOAD DANH SÁCH =====
+async function loadNhanKhau() {
+  document.getElementById('tableBody').innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">Đang tải dữ liệu...</td></tr>';
+  try {
+    const res = await fetch(`${API}/nhan-khau`, { headers: { 'Authorization': `Bearer ${token}` } });
+    if (!res.ok) throw new Error('API Error');
+    allData = await res.json();
+  } catch {
+    allData = MOCK_DATA;
+  }
+  currentData = allData;
+  renderPage(1);
+}
+
+// ===== RENDER BẢNG =====
+function renderTable(data) {
+  if (!data.length) {
+    document.getElementById('tableBody').innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">Không có dữ liệu</td></tr>';
+    return;
+  }
+  document.getElementById('tableBody').innerHTML = data.map((nk, i) => `
+    <tr>
+      <td style="color:var(--muted)">${String((currentPage - 1) * itemsPerPage + i + 1).padStart(3, "0")}</td>
+      <td><b>${nk.hoTen}</b></td>
+      <td>${nk.ngaySinh}</td>
+      <td>${(nk.gioiTinh || '').toLowerCase() === 'nam' ? '👨 Nam' : '👩 Nữ'}</td>
+      <td>${nk.tenChuHo ? nk.tenChuHo + " – " + (nk.canHo || "") : "<i style=\"color:#aaa\">Chưa có hộ</i>"}</td>
+      <td>${quanHeLabel(nk.quanHe)}</td>
+      <td>${badgeHTML(nk.trangThai)}</td>
+      <td style="display:flex;gap:4px">
+        <button class="abtn" onclick='openModal("view", ${JSON.stringify(nk).replace(/"/g,"&quot;")})'>👁</button>
+        <button class="abtn" onclick='openModal("edit", ${JSON.stringify(nk).replace(/"/g,"&quot;")})'>✏️</button>
+        <button class="abtn danger" onclick="deleteNhanKhau('${nk.id}','${nk.hoTen}')">🗑</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function quanHeLabel(qh) {
+  if (!qh) return '';
+  const map = { chu_ho:'Chủ hộ', vo_chong:'Vợ/Chồng', con:'Con', cha_me:'Cha/Mẹ', khac:'Khác' };
+  return map[qh] || qh;
+}
+
+// ===== LỌC =====
+function filterTable() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const tt = document.getElementById('filterTrangThai').value;
+  currentData = allData.filter(nk => {
+    const matchText = ((nk.hoTen||"") + (nk.tenChuHo||"") + (nk.canHo||"")).toLowerCase().includes(q);
+    const nkTt = nk.trangThai ? nk.trangThai.toLowerCase() : '';
+    const matchTT = tt ? nkTt === tt : true;
+    return matchText && matchTT;
+  });
+  renderPage(1);
+}
+
+// ===== LOAD DROPDOWN HỘ GIA ĐÌNH =====
+async function loadDanhSachHo() {
+  const select = document.getElementById('hoDanId');
+  select.innerHTML = '<option value="">-- Đang tải... --</option>';
+  try {
+    const res = await fetch(`${API}/ho-dan`, { headers: { 'Authorization': `Bearer ${token}` } });
+    if (!res.ok) throw new Error('API Error');
+    const data = await res.json();
+    select.innerHTML = `<option value="">-- Chọn hộ gia đình --</option>` +
+      data.map(h => `<option value="${h.id}">${h.tenChuHo} – ${h.soPhong || ""}</option>`).join('');
+  } catch {
+    select.innerHTML = `<option value="">-- Chọn hộ gia đình --</option>` +
+      MOCK_HO_DAN.map(h => `<option value="${h.id}">${h.tenChuHo} – ${h.canHo || ""}</option>`).join('');
+  }
+}
+
+// ===== MODAL =====
+function openModal(mode, data = {}) {
+  document.getElementById('modalOverlay').classList.add('show');
+  document.getElementById('modalTitle').textContent =
+    mode === 'add' ? 'Thêm nhân khẩu mới' :
+    mode === 'edit' ? 'Chỉnh sửa nhân khẩu' : 'Chi tiết nhân khẩu';
+
+  document.getElementById('nhanKhauId').value = data.id || '';
+  document.getElementById('hoTen').value     = data.hoTen || '';
+  document.getElementById('ngaySinh').value  = data.ngaySinh || '';
+  document.getElementById('gioiTinh').value  = data.gioiTinh || 'nam';
+  document.getElementById('soCCCD').value    = data.soCCCD || '';
+  document.getElementById('quanHe').value    = data.quanHe || 'chu_ho';
+  document.getElementById('trangThai').value = data.trangThai || 'thuong_tru';
+  document.getElementById('sdt').value       = data.soDienThoai || '';
+  document.getElementById('ghiChu').value    = '';
+
+  const readonly = mode === 'view';
+  document.querySelectorAll('#nhanKhauForm input, #nhanKhauForm select, #nhanKhauForm textarea')
+    .forEach(el => el.disabled = readonly);
+
+  // Ẩn nút Lưu khi chỉ xem
+  document.getElementById('btnSave').style.display = readonly ? 'none' : 'inline-block';
+
+  loadDanhSachHo().then(() => {
+    if (data.hoDanId) document.getElementById('hoDanId').value = data.hoDanId;
+    if (readonly) document.getElementById('hoDanId').disabled = true;
+  });
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+  document.getElementById('nhanKhauForm').reset();
+  document.querySelectorAll('.error').forEach(e => e.classList.remove('error'));
+  document.querySelectorAll('.show-error').forEach(e => e.classList.remove('show-error'));
+}
+
+// ===== VALIDATION =====
+function validate() {
+  let ok = true;
+  document.querySelectorAll('.error').forEach(e => e.classList.remove('error'));
+  document.querySelectorAll('.show-error').forEach(e => e.classList.remove('show-error'));
+  const required = {
+    hoTen:    v => v.trim().length > 0,
+    ngaySinh: v => v.length > 0,
+    hoDanId:  v => v.length > 0,
+  };
+  Object.entries(required).forEach(([id, check]) => {
+    const el = document.getElementById(id);
+    const err = document.getElementById('err-' + id);
+    if (!check(el.value)) {
+      el.classList.add('error');
+      if (err) err.classList.add('show-error');
+      ok = false;
+    }
+  });
+  return ok;
+}
+
+// ===== SUBMIT =====
+async function submitForm() {
+  if (!validate()) return;
+
+  const id = document.getElementById('nhanKhauId').value;
+  const body = {
+    hoTen:       document.getElementById('hoTen').value.trim(),
+    ngaySinh:    document.getElementById('ngaySinh').value,
+    gioiTinh:    document.getElementById('gioiTinh').value,
+    soCCCD:      document.getElementById('soCCCD').value || null,
+    hoDanId:     +document.getElementById('hoDanId').value,
+    quanHe:      document.getElementById('quanHe').value,
+    trangThai:   document.getElementById('trangThai').value,
+    soDienThoai: document.getElementById('sdt').value || null,
+  };
+
+  try {
+    const method = id ? 'PUT' : 'POST';
+    const url = id ? `${API}/nhan-khau/${id}` : `${API}/nhan-khau`;
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.message || 'Lỗi từ server (mã ' + res.status + ')');
+    }
+    closeModal();
+    loadNhanKhau();
+    alert(id ? 'Cập nhật thành công!' : 'Thêm nhân khẩu thành công!');
+  } catch (e) {
+    alert('Lỗi: ' + e.message);
+  }
+}
+
+// ===== XÓA =====
+async function deleteNhanKhau(id, ten) {
+  if (!confirm(`Xóa nhân khẩu "${ten}"? Thao tác không thể hoàn tác!`)) return;
+  try {
+    const res = await fetch(`${API}/nhan-khau/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error('API Error');
+    loadNhanKhau();
+    alert('Xóa thành công!');
+  } catch {
+    alert('Không thể kết nối server!');
+  }
+}
+
+// ===== ĐĂNG XUẤT =====
+function handleLogout() {
+  if (confirm('Bạn có chắc muốn đăng xuất?')) {
+    localStorage.removeItem('token');
+    window.location.href = 'login.html';
+  }
+}
+
+// ===== DỮ LIỆU MẪU =====
+const MOCK_DATA = [
+  {id:'1',hoTen:'Nguyễn Văn An',ngaySinh:'1985-03-15',gioiTinh:'nam',soCCCD:'001085012345',hoDanId:'1',tenChuHo:'Nguyễn Văn An',canHo:'A1-204',quanHe:'chu_ho',trangThai:'thuong_tru',soDienThoai:'0912345678'},
+  {id:'2',hoTen:'Trần Thị Bình',ngaySinh:'1990-07-22',gioiTinh:'nu', soCCCD:'001090023456',hoDanId:'2',tenChuHo:'Trần Thị Bình',canHo:'A1-310',quanHe:'chu_ho',trangThai:'thuong_tru',soDienThoai:'0987654321'},
+  {id:'3',hoTen:'Nguyễn Văn Bé', ngaySinh:'2015-01-10',gioiTinh:'nam',soCCCD:'',           hoDanId:'1',tenChuHo:'Nguyễn Văn An', canHo:'A1-204',quanHe:'con',    trangThai:'thuong_tru',soDienThoai:''},
+];
+
+const MOCK_HO_DAN = [
+  {id:'1',tenChuHo:'Nguyễn Văn An',canHo:'A1-204'},
+  {id:'2',tenChuHo:'Trần Thị Bình',canHo:'A1-310'},
+  {id:'3',tenChuHo:'Lê Minh Châu', canHo:'B2-108'},
+];
+
+// Khởi động
+loadNhanKhau();
+</script>
+</body>
+</html>

@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Phân Quyền – Quản Lý Hộ Dân</title>
+<link rel="stylesheet" href="layout.css"/>
+<style>
+.badge-admin { background:#FADBD8; color:#943126; }
+.badge-ketoan { background:#FCF3CF; color:#9A7D0A; }
+.badge-cudan { background:#D4E6F1; color:#1A5276; }
+.badge-active { background:#D5F5E3; color:#1E8449; }
+.badge-inactive { background:#E5E7E9; color:#616A6B; }
+.search-tbl{position:relative}
+.search-tbl input{height:34px;border:1px solid var(--border);border-radius:6px;padding:0 10px 0 32px;font-size:12.5px;font-family:inherit;outline:none;width:240px}
+.search-tbl input:focus{border-color:var(--primary)}
+.search-tbl span{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--muted)}
+.pagination{display:flex;align-items:center;gap:6px;margin-top:14px;justify-content:flex-end}
+.pg-btn{width:30px;height:30px;border:1px solid var(--border);border-radius:5px;background:#fff;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center}
+.pg-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.pg-btn:hover:not(.active){border-color:var(--primary);color:var(--primary)}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="hdr-logo">
+    <div class="hdr-icon">🏢</div>
+    <div><div class="hdr-title">Quản Lý Hộ Dân</div><div class="hdr-sub">BlueMoon – v1.0</div></div>
+  </div>
+  <div class="hdr-mid">
+    <div class="search-wrap"><span class="search-icon">🔍</span><input placeholder="Tìm kiếm..."/></div>
+    <nav class="breadcrumb">🛡️ / <b>Phân quyền hệ thống</b></nav>
+  </div>
+  <div class="hdr-right">
+    <button class="hbtn">🔔</button>
+    <button class="hbtn">⚙️</button>
+    <div class="upill"><div class="uavatar">AD</div><div><div class="uname">Admin</div><div class="urole">Quản trị viên</div></div></div>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<aside></aside>
+
+<!-- MAIN -->
+<main>
+  <div class="page-head" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+    <h1>Quản Lý Tài Khoản & Phân Quyền</h1>
+    <button class="btn btn-primary" onclick="openModal()">+ Tạo tài khoản mới</button>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr">
+      <div class="card-ttl">🛡️ Danh sách tài khoản hệ thống</div>
+      <div style="display:flex;gap:8px">
+        <div class="search-tbl">
+          <span>🔍</span>
+          <input type="text" id="searchInput" placeholder="Tìm theo tên đăng nhập hoặc họ tên..." oninput="filterTable()"/>
+        </div>
+        <select class="form-control" id="filterRole" style="width:160px;height:34px" onchange="filterTable()">
+          <option value="">Tất cả quyền</option>
+          <option value="ADMIN">Admin</option>
+          <option value="KE_TOAN">Kế toán</option>
+          <option value="CU_DAN">Cư dân</option>
+        </select>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Tên đăng nhập</th>
+            <th>Họ tên hiển thị</th>
+            <th>Quyền hạn</th>
+            <th>Trạng thái</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted)">Đang tải dữ liệu...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:12px;color:var(--muted)">Hiển thị <b id="showCount">0</b> / <b id="totalCount">0</b> tài khoản</span>
+      <div class="pagination"></div>
+    </div>
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2026 <b>Hệ Thống Quản Lý Hộ Dân & Thu Phí</b> — Đồ án Công nghệ Phần mềm – Nhóm 13</p>
+  <div class="flinks"><span>Hướng dẫn</span><span>Hỗ trợ</span></div>
+</footer>
+
+<!-- MODAL TẠO/SỬA TÀI KHOẢN -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" style="width:480px">
+    <div class="modal-hdr">
+      <span class="modal-ttl" id="modalTitle">Thêm tài khoản mới</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="editForm" novalidate>
+        <input type="hidden" id="userId"/>
+        <div class="form-group">
+          <label class="form-label">Tên đăng nhập <span class="required">*</span></label>
+          <input type="text" id="username" class="form-control" placeholder="Ví dụ: admin123" required/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mật khẩu <span id="passwordReq" class="required">*</span></label>
+          <input type="password" id="password" class="form-control" placeholder="Để trống nếu không muốn đổi mật khẩu (khi sửa)"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Họ tên hiển thị <span class="required">*</span></label>
+          <input type="text" id="hoTen" class="form-control" placeholder="Ví dụ: Quản Trị Viên" required/>
+        </div>
+        <div class="form-row">
+          <div class="form-group" style="flex:1">
+            <label class="form-label">Vai trò <span class="required">*</span></label>
+            <select id="role" class="form-control" onchange="handleRoleChange()">
+              <option value="ADMIN">Admin (Quản trị viên)</option>
+              <option value="KE_TOAN">Kế toán</option>
+              <option value="CU_DAN">Cư dân</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:1">
+            <label class="form-label">Trạng thái <span class="required">*</span></label>
+            <select id="trangThai" class="form-control">
+              <option value="true">Hoạt động</option>
+              <option value="false">Bị khóa</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" id="hoDanIdGroup" style="display:none">
+          <label class="form-label">ID Hộ Dân (Chỉ dành cho Cư dân) <span class="required">*</span></label>
+          <input type="number" id="hoDanId" class="form-control" placeholder="Nhập ID hộ dân tương ứng"/>
+          <small style="color:var(--muted);font-size:11px;display:block;margin-top:4px">Cư dân cần ID Hộ Dân để xem hóa đơn của riêng mình.</small>
+        </div>
+      </form>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal()">Hủy</button>
+      <button class="btn btn-primary" id="btnSave" onclick="submitForm()">💾 Lưu thay đổi</button>
+    </div>
+  </div>
+</div>
+
+<script src="common.js"></script>
+<script src="auth.js"></script>
+<script>
+  try { AUTH.init('phanquyen'); } catch(e){}
+
+// ===== HELPERS =====
+function getRoleBadge(role) {
+  if (role === 'ADMIN') return `<span class="badge badge-admin">👑 Admin</span>`;
+  if (role === 'KE_TOAN') return `<span class="badge badge-ketoan">💵 Kế toán</span>`;
+  if (role === 'CU_DAN') return `<span class="badge badge-cudan">🏠 Cư dân</span>`;
+  return `<span class="badge badge-inactive">${role}</span>`;
+}
+
+function getStatusBadge(isActive) {
+  if (isActive === true || isActive === 'true') {
+    return `<span class="badge badge-active">Hoạt động</span>`;
+  }
+  return `<span class="badge badge-inactive">Bị khóa</span>`;
+}
+
+function handleRoleChange() {
+  const role = document.getElementById('role').value;
+  const hdGroup = document.getElementById('hoDanIdGroup');
+  if (role === 'CU_DAN') {
+    hdGroup.style.display = 'block';
+  } else {
+    hdGroup.style.display = 'none';
+    document.getElementById('hoDanId').value = '';
+  }
+}
+
+// ===== PHÂN TRANG =====
+let allData = [];
+let currentData = [];
+let currentPage = 1;
+const itemsPerPage = 10;
+
+function renderPage(page) {
+  if (currentData.length === 0) {
+    renderTable([]);
+    renderPagination();
+    return;
+  }
+  if (page < 1 || page > Math.ceil(currentData.length / itemsPerPage)) return;
+  currentPage = page;
+  const start = (page - 1) * itemsPerPage;
+  renderTable(currentData.slice(start, start + itemsPerPage));
+  renderPagination();
+}
+
+function renderPagination() {
+  const totalPages = Math.ceil(currentData.length / itemsPerPage);
+  const container = document.querySelector('.pagination');
+  if (!container) return;
+  let html = `<button class="pg-btn" ${currentPage === 1 ? 'disabled style="opacity:0.5;pointer-events:none;"' : ''} onclick="renderPage(${currentPage - 1})">❮</button>`;
+  for (let i = 1; i <= totalPages; i++) {
+    html += `<button class="pg-btn ${currentPage === i ? 'active' : ''}" onclick="renderPage(${i})">${i}</button>`;
+  }
+  html += `<button class="pg-btn" ${currentPage === totalPages || totalPages === 0 ? 'disabled style="opacity:0.5;pointer-events:none;"' : ''} onclick="renderPage(${currentPage + 1})">❯</button>`;
+  container.innerHTML = html;
+  document.getElementById("showCount").textContent = Math.min(currentPage * itemsPerPage, currentData.length);
+  document.getElementById("totalCount").textContent = currentData.length;
+}
+
+// ===== LOAD DỮ LIỆU =====
+async function loadData() {
+  document.getElementById('tableBody').innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted)">Đang tải dữ liệu...</td></tr>';
+  try {
+    const res = await fetch(`${API}/nguoi-dung`, { headers: { 'Authorization': `Bearer ${token}` } });
+    if (!res.ok) throw new Error('API Error');
+    allData = await res.json();
+    
+    // Đảo ngược danh sách để tài khoản mới tạo ở trên cùng
+    allData = allData.reverse();
+  } catch (e) {
+    console.error(e);
+    allData = [];
+  }
+  filterTable();
+}
+
+// ===== RENDER BẢNG =====
+function renderTable(data) {
+  if (!data.length) {
+    document.getElementById('tableBody').innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted)">Không có dữ liệu</td></tr>';
+    return;
+  }
+  document.getElementById('tableBody').innerHTML = data.map((u, i) => `
+    <tr>
+      <td style="color:var(--muted)">${String((currentPage - 1) * itemsPerPage + i + 1).padStart(3, "0")}</td>
+      <td><b>${u.username}</b></td>
+      <td>${u.hoTen}</td>
+      <td>${getRoleBadge(u.role)}</td>
+      <td>${getStatusBadge(u.trangThai)}</td>
+      <td style="display:flex;gap:4px">
+        <button class="abtn" onclick='openModal(${JSON.stringify(u).replace(/"/g,"&quot;")})' title="Sửa">✏️</button>
+        <button class="abtn" onclick="deleteUser(${u.id})" title="Xóa" style="color:var(--danger)">🗑️</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ===== LỌC =====
+function filterTable() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const role = document.getElementById('filterRole').value;
+  currentData = allData.filter(u => {
+    const matchText = ((u.username||"") + (u.hoTen||"")).toLowerCase().includes(q);
+    const matchRole = role ? u.role === role : true;
+    return matchText && matchRole;
+  });
+  renderPage(1);
+}
+
+// ===== MODAL (THÊM / SỬA) =====
+let isEditMode = false;
+
+function openModal(data = null) {
+  document.getElementById('modalOverlay').classList.add('show');
+  
+  if (data) {
+    isEditMode = true;
+    document.getElementById('modalTitle').textContent = 'Chỉnh sửa tài khoản';
+    document.getElementById('passwordReq').style.display = 'none'; // Không bắt buộc nhập pass khi sửa
+    
+    document.getElementById('userId').value = data.id;
+    document.getElementById('username').value = data.username;
+    document.getElementById('username').readOnly = true; // Không cho sửa username
+    document.getElementById('username').style.background = '#f0f0f0';
+    document.getElementById('hoTen').value = data.hoTen;
+    document.getElementById('password').value = ''; // Luôn để trống
+    document.getElementById('role').value = data.role;
+    document.getElementById('trangThai').value = data.trangThai !== false ? 'true' : 'false';
+    document.getElementById('hoDanId').value = data.hoDanId || '';
+  } else {
+    isEditMode = false;
+    document.getElementById('modalTitle').textContent = 'Thêm tài khoản mới';
+    document.getElementById('passwordReq').style.display = 'inline';
+    
+    document.getElementById('userId').value = '';
+    document.getElementById('username').value = '';
+    document.getElementById('username').readOnly = false;
+    document.getElementById('username').style.background = '#fff';
+    document.getElementById('hoTen').value = '';
+    document.getElementById('password').value = '';
+    document.getElementById('role').value = 'ADMIN';
+    document.getElementById('trangThai').value = 'true';
+    document.getElementById('hoDanId').value = '';
+  }
+  handleRoleChange();
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+
+// ===== LƯU =====
+async function submitForm() {
+  const id = document.getElementById('userId').value;
+  const username = document.getElementById('username').value.trim();
+  const hoTen = document.getElementById('hoTen').value.trim();
+  const password = document.getElementById('password').value;
+  const role = document.getElementById('role').value;
+  const trangThai = document.getElementById('trangThai').value === 'true';
+  const hoDanId = document.getElementById('hoDanId').value;
+  
+  if (!username || !hoTen) {
+    alert('Vui lòng điền đầy đủ Tên đăng nhập và Họ tên!');
+    return;
+  }
+  
+  if (!isEditMode && !password) {
+    alert('Vui lòng nhập mật khẩu cho tài khoản mới!');
+    return;
+  }
+  
+  if (role === 'CU_DAN' && !hoDanId) {
+    alert('Vui lòng nhập ID Hộ Dân cho vai trò Cư dân!');
+    return;
+  }
+
+  const body = {
+    username, hoTen, role, trangThai,
+    hoDanId: hoDanId ? +hoDanId : null
+  };
+  
+  if (password) {
+    body.password = password; // Chỉ gửi password nếu có nhập
+  }
+
+  const method = isEditMode ? 'PUT' : 'POST';
+  const url = isEditMode ? `${API}/nguoi-dung/${id}` : `${API}/nguoi-dung`;
+
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(body)
+    });
+    
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(errText || 'Lỗi từ server');
+    }
+    
+    closeModal();
+    loadData();
+    alert(isEditMode ? 'Cập nhật tài khoản thành công!' : 'Đã tạo tài khoản mới!');
+  } catch (e) {
+    alert('Lỗi: ' + e.message);
+  }
+}
+
+// ===== XÓA =====
+async function deleteUser(id) {
+  if (!confirm('Bạn có chắc chắn muốn xóa tài khoản này vĩnh viễn?')) return;
+  
+  try {
+    const res = await fetch(`${API}/nguoi-dung/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error('Xóa thất bại');
+    alert('Đã xóa tài khoản!');
+    loadData();
+  } catch(e) {
+    alert('Lỗi: ' + e.message);
+  }
+}
+
+// Khởi động
+loadData();
+</script>
+</body>
+</html>
