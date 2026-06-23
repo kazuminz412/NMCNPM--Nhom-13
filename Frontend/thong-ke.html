@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Thống Kê – Quản Lý Hộ Dân</title>
+    <link rel="stylesheet" href="layout.css" />
+    <style>
+      .chart-bar-wrap {
+        padding: 16px 18px;
+      }
+      .chart-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 10px;
+        font-size: 12.5px;
+      }
+      .chart-label {
+        width: 140px;
+        color: var(--text);
+        text-align: right;
+        flex-shrink: 0;
+      }
+      .chart-bar-bg {
+        flex: 1;
+        height: 24px;
+        background: #f0f4f8;
+        border-radius: 6px;
+        overflow: hidden;
+      }
+      .chart-bar {
+        height: 100%;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        padding-left: 8px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #fff;
+        transition: width 0.5s ease;
+      }
+      .chart-val {
+        width: 60px;
+        color: var(--text);
+        font-weight: 600;
+        flex-shrink: 0;
+      }
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        margin-bottom: 20px;
+      }
+      .sum-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px;
+        text-align: center;
+      }
+      .sum-icon {
+        font-size: 28px;
+        margin-bottom: 8px;
+      }
+      .sum-val {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--text);
+      }
+      .sum-lbl {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="hdr">
+      <div class="hdr-logo">
+        <div class="hdr-icon">🏢</div>
+        <div>
+          <div class="hdr-title">Quản Lý Hộ Dân</div>
+          <div class="hdr-sub">BlueMoon – v1.0</div>
+        </div>
+      </div>
+      <div class="hdr-mid">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span><input placeholder="Tìm kiếm..." />
+        </div>
+        <nav class="breadcrumb">🏠 / <b>Thống kê</b></nav>
+      </div>
+      <div class="hdr-right">
+        <button class="hbtn">🔔</button>
+        <div class="upill">
+          <div class="uavatar">AD</div>
+          <div>
+            <div class="uname">Admin</div>
+            <div class="urole">Quản trị viên</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <aside>
+      
+      <div class="sidebar-foot">
+        <button class="logout" onclick="handleLogout()">🚪 Đăng xuất</button>
+      </div>
+    </aside>
+
+    <main>
+      <div class="page-head">
+        <h1>Thống Kê & Báo Cáo</h1>
+      </div>
+
+      <!-- Filter tháng -->
+      <div
+        style="
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 18px;
+        "
+      >
+        <label style="font-size: 13px; font-weight: 600">Chọn tháng:</label>
+        <input
+          type="month"
+          id="thangFilter"
+          class="form-control"
+          style="width: 160px"
+          value="2026-05"
+          onchange="loadData()"
+        />
+        <button class="btn btn-primary" onclick="loadData()">
+          📊 Cập nhật
+        </button>
+        <button class="btn btn-outline" onclick="exportReport()">
+          📤 Xuất báo cáo
+        </button>
+      </div>
+
+      <!-- Summary cards -->
+      <div class="summary-grid">
+        <div class="sum-card">
+          <div class="sum-icon">💰</div>
+          <div class="sum-val" id="tongThu">19,600,000đ</div>
+          <div class="sum-lbl">Tổng thu tháng 5/2026</div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-icon">✅</div>
+          <div class="sum-val" id="soHoDaDong" style="color: var(--success)">
+            189
+          </div>
+          <div class="sum-lbl">Số hộ đã đóng đủ phí</div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-icon">⚠️</div>
+          <div class="sum-val" id="soHoChuaDong" style="color: var(--danger)">
+            59
+          </div>
+          <div class="sum-lbl">Số hộ chưa đóng phí</div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px">
+        <!-- Biểu đồ theo khoản thu -->
+        <div class="card">
+          <div class="card-hdr">
+            <div class="card-ttl">📊 Thu theo từng khoản</div>
+          </div>
+          <div class="chart-bar-wrap" id="chartKhoanThu"></div>
+        </div>
+
+        <!-- Bảng tổng hợp -->
+        <div class="card">
+          <div class="card-hdr">
+            <div class="card-ttl">📋 Tổng hợp theo khoản thu</div>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Khoản thu</th>
+                  <th>Đã thu</th>
+                  <th>Chưa thu</th>
+                  <th>Tỉ lệ</th>
+                </tr>
+              </thead>
+              <tbody id="summaryTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <p>
+        © 2026 <b>Hệ Thống Quản Lý Hộ Dân & Thu Phí</b> — Đồ án Công nghệ Phần
+        mềm – Nhóm 13
+      </p>
+      <div class="flinks"><span>Hướng dẫn</span><span>Hỗ trợ</span></div>
+    </footer>
+
+    <script src="common.js"></script>
+<script src="auth.js"></script>
+<script>
+  try { AUTH.init('thongke'); } catch(e){}
+
+      const MOCK_STATS = [
+        {
+          tenKhoanThu: "Phí vệ sinh",
+          daThu: 189,
+          chuaThu: 59,
+          soTienDaThu: 9450000,
+        },
+        {
+          tenKhoanThu: "Phí an ninh",
+          daThu: 200,
+          chuaThu: 48,
+          soTienDaThu: 6000000,
+        },
+        {
+          tenKhoanThu: "Quỹ cộng đồng",
+          daThu: 100,
+          chuaThu: 148,
+          soTienDaThu: 10000000,
+        },
+      ];
+
+      function renderChart(data) {
+        const max = Math.max(...data.map((d) => d.daThu + d.chuaThu));
+        document.getElementById("chartKhoanThu").innerHTML = data
+          .map((d) => {
+            const total = d.daThu + d.chuaThu;
+            const pct = Math.round((d.daThu / total) * 100);
+            return `
+      <div class="chart-row">
+        <div class="chart-label">${d.tenKhoanThu}</div>
+        <div class="chart-bar-bg">
+          <div class="chart-bar" style="width:${pct}%;background:var(--primary)">${pct}%</div>
+        </div>
+        <div class="chart-val">${d.daThu}/${total}</div>
+      </div>
+    `;
+          })
+          .join("");
+      }
+
+      function renderSummary(data) {
+        document.getElementById("summaryTable").innerHTML = data
+          .map((d) => {
+            const total = d.daThu + d.chuaThu;
+            const pct = Math.round((d.daThu / total) * 100);
+            return `
+      <tr>
+        <td><b>${d.tenKhoanThu}</b></td>
+        <td style="color:var(--success)"><b>${d.daThu}</b> hộ</td>
+        <td style="color:var(--danger)">${d.chuaThu} hộ</td>
+        <td><span class="badge ${pct >= 75 ? "badge-success" : pct >= 50 ? "badge-warn" : "badge-danger"}">${pct}%</span></td>
+      </tr>
+    `;
+          })
+          .join("");
+      }
+
+      async function loadData() {
+        const thang = document.getElementById("thangFilter").value;
+        try {
+          const res = await fetch(`${API}/thong-ke?thang=${thang}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (!res.ok) throw new Error();
+          const data = await res.json();
+
+          // CODE BỔ SUNG: Cập nhật DOM (Gắn số liệu thật từ Backend lên giao diện)
+          document.getElementById("tongThu").innerText =
+            data.tongThu.toLocaleString("vi-VN") + "đ";
+          document.getElementById("soHoDaDong").innerText = data.soHoDaDong;
+          document.getElementById("soHoChuaDong").innerText = data.soHoChuaDong;
+
+          renderChart(data.items);
+          renderSummary(data.items);
+        } catch {
+          alert("Không thể tải dữ liệu thống kê!");
+        }
+      }
+
+      function exportReport() {
+        alert("Tính năng xuất Excel sẽ được tích hợp ở Sprint 2!"); // Sửa câu thông báo
+      }
+
+      loadData();
+    </script>
+    
+  `n</body>
+</html>
+
+
