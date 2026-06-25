@@ -4,6 +4,9 @@ import com.bluemoon.model.HoDan;
 import com.bluemoon.model.NhanKhau;
 import com.bluemoon.repository.HoDanRepository;
 import com.bluemoon.repository.NhanKhauRepository;
+import com.bluemoon.repository.NhatKyHoatDongRepository;
+import com.bluemoon.model.NhatKyHoatDong;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -14,6 +17,7 @@ public class NhanKhauService {
     
     private final NhanKhauRepository nhanKhauRepository;
     private final HoDanRepository hoDanRepository; 
+    private final NhatKyHoatDongRepository nhatKyRepo;
 
     public List<NhanKhau> findAll() {
         return nhanKhauRepository.findAll();
@@ -35,8 +39,16 @@ public class NhanKhauService {
         } else {
             throw new RuntimeException("Phải chọn Hộ gia đình cho nhân khẩu này!");
         }
+        
+        NhanKhau savedNhanKhau = nhanKhauRepository.save(nhanKhau);
 
-        return nhanKhauRepository.save(nhanKhau);
+        NhatKyHoatDong log = new NhatKyHoatDong();
+        log.setNoiDung(String.format("Nhân khẩu <b>%s</b> vừa được thêm vào hộ <b>%s</b>", savedNhanKhau.getHoTen(), savedNhanKhau.getHoDan() != null && savedNhanKhau.getHoDan().getSoPhong() != null ? savedNhanKhau.getHoDan().getSoPhong() : "Trống"));
+        log.setMauSac("#8E44AD"); 
+        log.setThoiGian(LocalDateTime.now());
+        nhatKyRepo.save(log);
+
+        return savedNhanKhau;
     }
 
     public NhanKhau update(Long id, NhanKhau details) {
@@ -71,7 +83,16 @@ public class NhanKhauService {
 
     // Xóa nhân khẩu
     public void delete(Long id) {
-        nhanKhauRepository.deleteById(id);
+        NhanKhau nk = nhanKhauRepository.findById(id).orElse(null);
+        if (nk != null) {
+            nhanKhauRepository.deleteById(id);
+            
+            NhatKyHoatDong log = new NhatKyHoatDong();
+            log.setNoiDung(String.format("Nhân khẩu <b>%s</b> vừa bị xóa khỏi hệ thống", nk.getHoTen() != null ? nk.getHoTen() : "Trống"));
+            log.setMauSac("#E74C3C"); 
+            log.setThoiGian(LocalDateTime.now());
+            nhatKyRepo.save(log);
+        }
     }
 
     // Lấy danh sách nhân khẩu theo Hộ dân (Dành cho MeController - Góc Cư Dân)

@@ -2,9 +2,13 @@ package com.bluemoon.service;
 
 import com.bluemoon.model.HoaDon;
 import com.bluemoon.repository.HoaDonRepository;
+import com.bluemoon.repository.NhatKyHoatDongRepository;
+import com.bluemoon.repository.GiaoDichRepository;
+import com.bluemoon.model.NhatKyHoatDong;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.time.LocalDateTime;
 
 import java.util.List;
 
@@ -13,6 +17,20 @@ import java.util.List;
 public class HoaDonService {
 
     private final HoaDonRepository hoaDonRepo;
+    private final NhatKyHoatDongRepository nhatKyRepo;
+    private final GiaoDichRepository giaoDichRepo;
+    
+    private void populateNgayThanhToan(List<HoaDon> list) {
+        if (list != null) {
+            list.forEach(hd -> {
+                if ("da_thanh_toan".equals(hd.getTrangThai()) || "mot_phan".equals(hd.getTrangThai())) {
+                    giaoDichRepo.findTopByHoaDonIdOrderByThoiGianDesc(hd.getId()).ifPresent(gd -> {
+                        hd.setNgayThanhToan(gd.getThoiGian().toLocalDate().toString());
+                    });
+                }
+            });
+        }
+    }
 
     // 1. TẠO HÓA ĐƠN ĐỊNH KỲ (Gọi Stored Procedure dưới Database)
     @Transactional
@@ -23,14 +41,23 @@ public class HoaDonService {
         }
         // Gọi Stored Procedure sp_TaoHoaDonDinhKy để tự động tính tiền
         hoaDonRepo.taoHoaDonDinhKy(thangNam);
+        
+        NhatKyHoatDong log = new NhatKyHoatDong();
+        log.setNoiDung(String.format("Quản trị viên đã tạo hóa đơn tháng <b>%s</b>", thangNam));
+        log.setMauSac("#D35400"); 
+        log.setThoiGian(LocalDateTime.now());
+        nhatKyRepo.save(log);
     }
 
-    // 2. TÌM KIẾM THEO THÁNG (Nếu không truyền tháng thì lấy toàn bộ)
     public List<HoaDon> timKiemTheoThang(String thangNam) {
+        List<HoaDon> list;
         if (thangNam == null || thangNam.isEmpty()) {
-            return hoaDonRepo.findAll();
+            list = hoaDonRepo.findAll();
+        } else {
+            list = hoaDonRepo.findByThang(thangNam);
         }
-        return hoaDonRepo.findByThang(thangNam);
+        populateNgayThanhToan(list);
+        return list;
     }
 
     // 3. TÌM THEO ID (Chi tiết 1 hóa đơn)
@@ -48,17 +75,22 @@ public class HoaDonService {
         hoaDonRepo.deleteById(id);
     }
 
-    // 5. LẤY DANH SÁCH HÓA ĐƠN CỦA 1 HỘ DÂN (Dành cho Góc Cư Dân)
+    // 5. Lấy danh sách hóa đơn của 1 hộ dân cụ thể (Dành cho Cư Dân)
     public List<HoaDon> findByHoDanId(Long hoDanId) {
-        return hoaDonRepo.findByHoDanId(hoDanId);
+        List<HoaDon> list = hoaDonRepo.findByHoDanId(hoDanId);
+        populateNgayThanhToan(list);
+        return list;
     }
 
-    // 6. LẤY HÓA ĐƠN CỦA 1 HỘ DÂN THEO THÁNG CỤ THỂ
-    public List<HoaDon> timTheoHoDanVaThang(Long hoDanId, String thang) {
-        if (thang == null || thang.isEmpty()) {
-            // Nếu không lọc tháng thì trả về toàn bộ hóa đơn của hộ đó
-            return hoaDonRepo.findByHoDanId(hoDanId);
+    // 6. Lấy hóa đơn của 1 hộ dân trong 1 tháng cụ thể
+    public List<HoaDon> timTheoHoDanVaThang(Long hoDanId, String thangNam) {
+        List<HoaDon> list;
+        if (thangNam == null || thangNam.isEmpty()) {
+            list = hoaDonRepo.findByHoDanId(hoDanId);
+        } else {
+            list = hoaDonRepo.findByHoDanIdAndThang(hoDanId, thangNam);
         }
-        return hoaDonRepo.findByHoDanIdAndThang(hoDanId, thang);
+        populateNgayThanhToan(list);
+        return list;
     }
 }

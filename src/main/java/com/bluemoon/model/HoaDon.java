@@ -32,5 +32,8 @@ public class HoaDon extends BaseEntity {
     // CascadeType.ALL giÃºp khi lÆ°u HoaDon thÃ¬ tá»± Ä‘á»™ng lÆ°u luÃ´n cÃ¡c ChiTietHoaDon bÃªn trong
     @OneToMany(mappedBy = "hoaDon", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChiTietHoaDon> chiTietList = new ArrayList<>();
+    
+    @Transient
+    private String ngayThanhToan;
 }
 

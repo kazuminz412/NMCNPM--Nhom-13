@@ -243,7 +243,7 @@ async function loadData() {
       <td><b>Tháng ${hd.thang.split('-').reverse().join('/')}</b></td>
       <td>${amountText}</td>
       <td><span class="badge ${badgeClass}">${badgeText}</span></td>
-      <td>${hd.ngayTT || '—'}</td>
+      <td>${hd.ngayThanhToan || '—'}</td>
       <td><button class="btn-xem" onclick='xemChiTiet(${JSON.stringify(hd).replace(/"/g,"&quot;")})'>🔍 Xem</button></td>
     </tr>`;
     }).join('');

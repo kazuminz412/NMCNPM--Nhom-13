@@ -13,6 +13,9 @@ public interface GiaoDichRepository extends JpaRepository<GiaoDich, Long> {
 
     // Lấy danh sách giao dịch của 1 hộ dân, sắp xếp mới nhất lên đầu
     List<GiaoDich> findByHoDanIdOrderByThoiGianDesc(Long hoDanId);
+    
+    // Lấy giao dịch mới nhất của 1 hóa đơn
+    Optional<GiaoDich> findTopByHoaDonIdOrderByThoiGianDesc(Long hoaDonId);
 
     // Tra cứu chi tiết 1 giao dịch dựa vào mã biên lai
     Optional<GiaoDich> findByMaGiaoDich(String maGiaoDich);

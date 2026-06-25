@@ -70,6 +70,7 @@ public class MeController {
     private final com.bluemoon.repository.HoaDonRepository hoaDonRepo;
     private final com.bluemoon.repository.ChiTietHoaDonRepository chiTietHoaDonRepo;
     private final com.bluemoon.repository.GiaoDichRepository giaoDichRepo;
+    private final com.bluemoon.repository.NhatKyHoatDongRepository nhatKyRepo;
 
     // 5. ĐÓNG GÓP TỰ NGUYỆN
     @PostMapping("/tu-nguyen")
@@ -122,6 +123,11 @@ public class MeController {
         ct.setThanhTien(soTienNop);
         ct.setTrangThai("da_dong");
         chiTietHoaDonRepo.save(ct);
+        
+        if (hdObj.getChiTietList() == null) {
+            hdObj.setChiTietList(new java.util.ArrayList<>());
+        }
+        hdObj.getChiTietList().add(ct);
 
         // Cập nhật tổng tiền hóa đơn
         hdObj.setTongTien(hdObj.getTongTien() + soTienNop);
@@ -147,6 +153,12 @@ public class MeController {
         gd.setThoiGian(java.time.LocalDateTime.now());
         gd.setGhiChu(ghiChu);
         giaoDichRepo.save(gd);
+        
+        com.bluemoon.model.NhatKyHoatDong log = new com.bluemoon.model.NhatKyHoatDong();
+        log.setNoiDung(String.format("Hộ <b>%s</b> đã tự nguyện đóng góp <b>%s</b> (%,d đ)", hd.getTenChuHo() != null ? hd.getTenChuHo() : hd.getSoPhong(), dmp.getTenPhi(), soTienNop));
+        log.setMauSac("#1ABC9C"); 
+        log.setThoiGian(java.time.LocalDateTime.now());
+        nhatKyRepo.save(log);
 
         return ResponseEntity.ok("Ghi nhận đóng góp thành công!");
     }

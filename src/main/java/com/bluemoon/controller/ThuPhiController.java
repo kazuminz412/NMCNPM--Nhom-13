@@ -27,6 +27,7 @@ public class ThuPhiController {
     private final DanhMucPhiRepository danhMucPhiRepo;
     private final GiaoDichRepository giaoDichRepo;
     private final PhuongTienRepository phuongTienRepo;
+    private final NhatKyHoatDongRepository nhatKyRepo;
 
     @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('KE_TOAN')")
     @GetMapping
@@ -107,6 +108,12 @@ public class ThuPhiController {
         gd.setThoiGian(LocalDateTime.now());
         gd.setGhiChu(ghiChu);
         giaoDichRepo.save(gd);
+        
+        NhatKyHoatDong log = new NhatKyHoatDong();
+        log.setNoiDung(String.format("Hộ <b>%s</b> đã nộp khoản <b>%s</b> (%,d đ)", ct.getHoaDon().getHoDan().getTenChuHo(), ct.getDanhMucPhi().getTenPhi(), soTienNop));
+        log.setMauSac("#1E8449"); 
+        log.setThoiGian(LocalDateTime.now());
+        nhatKyRepo.save(log);
         
         // Check if HoaDon is fully paid
         HoaDon hd = ct.getHoaDon();

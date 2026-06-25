@@ -2,6 +2,9 @@ package com.bluemoon.service;
 
 import com.bluemoon.model.HoDan;
 import com.bluemoon.repository.HoDanRepository;
+import com.bluemoon.repository.NhatKyHoatDongRepository;
+import com.bluemoon.model.NhatKyHoatDong;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -11,6 +14,7 @@ import java.util.List;
 public class HoDanService {
     
     private final HoDanRepository repo;
+    private final NhatKyHoatDongRepository nhatKyRepo;
 
     public List<HoDan> getAll() { 
         return repo.findAll(); 
@@ -22,7 +26,15 @@ public class HoDanService {
         } else if (repo.existsByMaHoKhau(ho.getMaHoKhau())) {
             throw new RuntimeException("Mã hộ khẩu đã tồn tại!");
         }
-        return repo.save(ho);
+        HoDan savedHo = repo.save(ho);
+        
+        NhatKyHoatDong log = new NhatKyHoatDong();
+        log.setNoiDung(String.format("Hộ <b>%s</b> vừa được thêm mới vào hệ thống", savedHo.getTenChuHo() != null ? savedHo.getTenChuHo() : "Trống"));
+        log.setMauSac("#2E86C1"); 
+        log.setThoiGian(LocalDateTime.now());
+        nhatKyRepo.save(log);
+        
+        return savedHo;
     }
 
     public HoDan update(Long id, HoDan data) {
@@ -54,8 +66,16 @@ public class HoDanService {
     }
 
     public void delete(Long id) { 
-        // Xóa thẳng bằng ID
-        repo.deleteById(id); 
+        HoDan ho = repo.findById(id).orElse(null);
+        if (ho != null) {
+            repo.deleteById(id);
+            
+            NhatKyHoatDong log = new NhatKyHoatDong();
+            log.setNoiDung(String.format("Hộ <b>%s</b> vừa bị xóa khỏi hệ thống", ho.getTenChuHo() != null ? ho.getTenChuHo() : "Trống"));
+            log.setMauSac("#E74C3C"); 
+            log.setThoiGian(LocalDateTime.now());
+            nhatKyRepo.save(log);
+        }
     }
 
     // Tìm Hộ dân theo ID (Dành cho MeController lấy thông tin nhà)
