@@ -71,6 +71,13 @@ public class KhoanThuController {
         DanhMucPhi phi = danhMucPhiRepo.findById(request.getDanhMucPhiId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khoản phí!"));
 
+        // KIỂM TRA: Không cho thu 1 khoản cùng 1 tháng 2 lần
+        String sqlCheck = "SELECT COUNT(c.id) FROM chi_tiet_hoa_don c JOIN hoa_don h ON c.hoa_don_id = h.id WHERE c.danh_muc_phi_id = ? AND h.thang = ?";
+        Integer countExists = jdbcTemplate.queryForObject(sqlCheck, Integer.class, phi.getId(), request.getThangApDung());
+        if (countExists != null && countExists > 0) {
+            return ResponseEntity.badRequest().body("Lỗi: Khoản thu này đã được tạo cho tháng " + request.getThangApDung() + "!");
+        }
+
         List<HoDan> tatCaHoDan = hoDanRepo.findAll();
         
         for (HoDan hoDan : tatCaHoDan) {
@@ -92,7 +99,16 @@ public class KhoanThuController {
                     } else if ("xe_dap_dien".equals(phi.getDonViTinh()) && loai.equals("xe_dap_dien")) {
                         xeCount++;
                     } else if ("xe".equals(phi.getDonViTinh())) {
-                        xeCount++;
+                        String tenPhi = phi.getTenPhi().toLowerCase();
+                        if (tenPhi.contains("ô tô") || tenPhi.contains("oto")) {
+                            if (loai.equals("o_to") || loai.equals("oto")) xeCount++;
+                        } else if (tenPhi.contains("máy")) {
+                            if (loai.equals("xe_may") || loai.equals("may")) xeCount++;
+                        } else if (tenPhi.contains("đạp")) {
+                            if (loai.equals("xe_dap_dien") || loai.equals("dap")) xeCount++;
+                        } else {
+                            xeCount++; // Tính tất cả các xe nếu không phân biệt được
+                        }
                     }
                 }
                 soLuong = xeCount;

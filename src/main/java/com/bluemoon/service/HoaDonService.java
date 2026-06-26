@@ -78,6 +78,7 @@ public class HoaDonService {
     // 5. Lấy danh sách hóa đơn của 1 hộ dân cụ thể (Dành cho Cư Dân)
     public List<HoaDon> findByHoDanId(Long hoDanId) {
         List<HoaDon> list = hoaDonRepo.findByHoDanId(hoDanId);
+        autoFixChiTiet(list);
         populateNgayThanhToan(list);
         return list;
     }
@@ -90,7 +91,25 @@ public class HoaDonService {
         } else {
             list = hoaDonRepo.findByHoDanIdAndThang(hoDanId, thangNam);
         }
+        autoFixChiTiet(list);
         populateNgayThanhToan(list);
         return list;
+    }
+
+    private void autoFixChiTiet(List<HoaDon> list) {
+        boolean changed = false;
+        for (HoaDon hd : list) {
+            if ("da_thanh_toan".equals(hd.getTrangThai()) && hd.getChiTietList() != null) {
+                for (com.bluemoon.model.ChiTietHoaDon ct : hd.getChiTietList()) {
+                    if (!"da_dong".equals(ct.getTrangThai())) {
+                        ct.setTrangThai("da_dong");
+                        changed = true;
+                    }
+                }
+            }
+        }
+        if (changed) {
+            hoaDonRepo.saveAll(list);
+        }
     }
 }

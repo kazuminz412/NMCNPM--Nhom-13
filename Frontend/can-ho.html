@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Căn Hộ – Quản Lý Hộ Dân</title>
+    <link rel="stylesheet" href="layout.css" />
+    <style>
+      .tbl-wrap {
+        overflow-x: auto;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: inset 0 0 0 1px var(--border);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th {
+        background: #f8fafc;
+        padding: 12px 14px;
+        text-align: left;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--muted);
+        border-bottom: 1px solid var(--border);
+        white-space: nowrap;
+      }
+      td {
+        padding: 12px 14px;
+        font-size: 14px;
+        border-bottom: 1px solid var(--border);
+        color: #334155;
+        vertical-align: middle;
+      }
+      tr:hover td {
+        background: #f8fafc;
+      }
+      .badge-success {
+        background: #ecfdf5;
+        color: #10b981;
+      }
+      .badge-muted {
+        background: #f1f5f9;
+        color: #64748b;
+      }
+      .badge {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- HEADER -->
+    <header class="hdr">
+      <div class="hdr-logo">
+        <div class="hdr-icon">🏢</div>
+        <div>
+          <div class="hdr-title">Quản Lý Hộ Dân</div>
+          <div class="hdr-sub">BlueMoon – v1.0</div>
+        </div>
+      </div>
+      <div class="hdr-mid">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span><input placeholder="Tìm kiếm..." />
+        </div>
+        <nav class="breadcrumb">🏠 / <b>Căn hộ</b></nav>
+      </div>
+      <div class="hdr-right">
+        <button class="hbtn">🔔</button>
+        <button class="hbtn">⚙️</button>
+        <div class="upill">
+          <div class="uavatar">AD</div>
+          <div>
+            <div class="uname">Admin</div>
+            <div class="urole">Quản trị viên</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- SIDEBAR -->
+    <aside></aside>
+
+    <!-- MAIN -->
+    <main>
+      <div class="page-head"><h1>Quản Lý Căn Hộ</h1></div>
+
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-ttl">🏢 Danh sách căn hộ</div>
+          <div style="display: flex; gap: 8px">
+            <div class="search-tbl">
+              <span>🔍</span>
+              <input type="text" id="searchInput" placeholder="Tìm mã căn hộ, chủ hộ..." oninput="filterTable()" />
+            </div>
+            <select class="form-control" style="width:150px; font-size:13px" id="filterStatus" onchange="filterTable()">
+              <option value="">Tất cả trạng thái</option>
+              <option value="da_co_chu">Đã có chủ</option>
+              <option value="chua_co_chu">Chưa có chủ</option>
+            </select>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table id="canHoTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Mã căn hộ</th>
+                <th>Tòa nhà</th>
+                <th>Chủ hộ</th>
+                <th>Diện tích (m2)</th>
+                <th>Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <tr>
+                <td colspan="6" style="text-align:center;padding:20px;color:var(--muted)">Đang tải dữ liệu...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="padding: 10px 14px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 12px; color: var(--muted)">Hiển thị <b id="showCount">0</b> / <b id="totalCount">0</b> căn hộ</span>
+        </div>
+      </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+      <p>© 2026 <b>Hệ Thống Quản Lý Hộ Dân &amp; Thu Phí</b> — Đồ án Công nghệ Phần mềm – Nhóm 13</p>
+      <div class="flinks"><span>Hướng dẫn</span><span>Hỗ trợ</span></div>
+    </footer>
+
+    <script src="common.js"></script>
+    <script src="auth.js"></script>
+    <script>
+      AUTH.init('canho'); // Dùng key 'canho' để common.js highlight menu đúng
+
+      const API_URL = 'http://localhost:8080/api/can-ho';
+      let canHoList = [];
+
+      async function fetchCanHo() {
+        try {
+          const res = await fetch(API_URL, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (!res.ok) throw new Error('Failed to fetch');
+          canHoList = await res.json();
+          filterTable();
+        } catch (error) {
+          console.error(error);
+          document.getElementById('tableBody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:red">Lỗi tải dữ liệu</td></tr>';
+        }
+      }
+
+      function filterTable() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const status = document.getElementById('filterStatus').value;
+        const filtered = canHoList.filter(c => {
+          const m = c.maCanHo.toLowerCase().includes(query) || (c.tenChuHo && c.tenChuHo.toLowerCase().includes(query));
+          const s = status ? c.trangThai === status : true;
+          return m && s;
+        });
+        renderTable(filtered);
+      }
+
+      function renderTable(data) {
+        document.getElementById('totalCount').textContent = canHoList.length;
+        document.getElementById('showCount').textContent = data.length;
+        if (data.length === 0) {
+          document.getElementById('tableBody').innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted)">Không tìm thấy căn hộ nào</td></tr>';
+          return;
+        }
+        document.getElementById('tableBody').innerHTML = data.map((c, i) => {
+          const badgeClass = c.trangThai === 'da_co_chu' ? 'badge-success' : 'badge-muted';
+          const badgeIcon = c.trangThai === 'da_co_chu' ? '✓' : '—';
+          const badgeText = c.trangThai === 'da_co_chu' ? 'Đã có chủ' : 'Chưa có chủ';
+          const chuHoHtml = c.tenChuHo ? `<b>${c.tenChuHo}</b>` : `<span style="color:var(--muted)">Trống</span>`;
+          return `
+            <tr>
+              <td style="color:var(--muted)">${i + 1}</td>
+              <td><b>${c.maCanHo}</b></td>
+              <td><span class="badge badge-muted">${c.toaNha}</span></td>
+              <td>${chuHoHtml}</td>
+              <td>${c.dienTich} m²</td>
+              <td><span class="badge ${badgeClass}">${badgeIcon} ${badgeText}</span></td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      fetchCanHo();
+    </script>
+  </body>
+</html>

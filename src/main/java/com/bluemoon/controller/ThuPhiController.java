@@ -197,10 +197,21 @@ public class ThuPhiController {
         ct.setDanhMucPhi(dmp);
         
         Long soLuong = 1L;
-        if (dmp.getLoaiPhi().equals("o_to") || dmp.getLoaiPhi().equals("xe_may") || dmp.getLoaiPhi().equals("xe_dap_dien")) {
-            soLuong = (long) phuongTienRepo.findByHoDanId(hd.getId()).stream().filter(p -> p.getLoaiXe().equals(dmp.getLoaiPhi())).count();
-        } else if (dmp.getLoaiPhi().equals("dien_tich")) {
+        String donVi = dmp.getDonViTinh() != null ? dmp.getDonViTinh().toLowerCase() : "";
+        String tenPhi = dmp.getTenPhi() != null ? dmp.getTenPhi().toLowerCase() : "";
+        
+        if (donVi.equals("o_to") || donVi.equals("xe_may") || donVi.equals("xe_dap_dien") || donVi.equals("xe")) {
+            soLuong = (long) phuongTienRepo.findByHoDanId(hd.getId()).stream().filter(p -> {
+                String l = p.getLoaiXe() != null ? p.getLoaiXe().toLowerCase() : "";
+                if (donVi.equals("o_to") || tenPhi.contains("ô tô") || tenPhi.contains("oto")) return l.equals("o_to") || l.equals("oto");
+                if (donVi.equals("xe_may") || tenPhi.contains("máy")) return l.equals("xe_may") || l.equals("may");
+                if (donVi.equals("xe_dap_dien") || tenPhi.contains("đạp")) return l.equals("xe_dap_dien") || l.equals("dap");
+                return true; // Fallback "xe"
+            }).count();
+        } else if (donVi.equals("m2")) {
             soLuong = hd.getDienTichM2() != null ? hd.getDienTichM2().longValue() : 1L;
+        } else if (donVi.equals("nguoi")) {
+            soLuong = hd.getSoNhanKhau() != null ? hd.getSoNhanKhau().longValue() : 1L;
         }
         if (soLuong == 0) soLuong = 1L; // To add at least something if manually added
         

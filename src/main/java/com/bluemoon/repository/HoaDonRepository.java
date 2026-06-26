@@ -31,8 +31,8 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Long> {
     // NHÓM 2: PHỤC VỤ DASHBOARD THỐNG KÊ
     // ==========================================
     
-    // Tính tổng tiền đã thu được trong tháng
-    @Query("SELECT COALESCE(SUM(h.tongTien), 0) FROM HoaDon h WHERE h.thang = :thang AND h.trangThai = 'da_thanh_toan'")
+    // Tính tổng tiền dự kiến thu được trong tháng (Doanh thu = Tổng các hóa đơn phát hành)
+    @Query("SELECT COALESCE(SUM(h.tongTien), 0) FROM HoaDon h WHERE h.thang = :thang")
     Long sumDoanhThuByThang(@Param("thang") String thang);
 
     // Đếm số hộ đã hoàn thành nộp phí

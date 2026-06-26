@@ -34,7 +34,7 @@ public class HoaDonController {
     // 2. LẤY TẤT CẢ DANH SÁCH (Chỉ Quản lý mới được xem tất cả)
     @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('KE_TOAN')")
     @GetMapping
-    public ResponseEntity<List<HoaDon>> getDanhSachHoaDon(@RequestParam(required = false) String thangNam) {
+    public ResponseEntity<List<HoaDon>> getDanhSachHoaDon(@RequestParam(value = "thang", required = false) String thangNam) {
         List<HoaDon> danhSach = hoaDonService.timKiemTheoThang(thangNam);
         return ResponseEntity.ok(danhSach);
     }

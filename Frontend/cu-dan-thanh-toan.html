@@ -244,8 +244,62 @@ function selectInvoice(idx) {
   const qrUrl = `https://img.vietqr.io/image/vcb-0123456789-compact2.png?amount=${conLai}&addInfo=${encodeURIComponent(noidung)}&accountName=BQL CHUNG CU BLUEMOON`;
   document.getElementById('qrCode').src = qrUrl;
   
-  const confirmBtn = document.getElementById('confirmVoluntaryBtn');
-  if (confirmBtn) confirmBtn.style.display = 'none';
+  const volBtn = document.getElementById('confirmVoluntaryBtn');
+  if (volBtn) volBtn.style.display = 'none';
+
+  let invBtn = document.getElementById('confirmInvoiceBtn');
+  if (!invBtn) {
+    invBtn = document.createElement('button');
+    invBtn.id = 'confirmInvoiceBtn';
+    invBtn.className = 'btn-login';
+    invBtn.style.marginTop = '15px';
+    invBtn.innerHTML = 'Tôi đã chuyển khoản thành công';
+    invBtn.onclick = confirmInvoicePayment;
+    document.querySelector('.bank-info').appendChild(invBtn);
+  }
+  invBtn.style.display = 'block';
+  activeInvoiceId = inv.id;
+  activeInvoiceAmount = conLai;
+}
+
+let activeInvoiceId = null;
+let activeInvoiceAmount = 0;
+
+async function confirmInvoicePayment() {
+  if (!activeInvoiceId) return;
+  const btn = document.getElementById('confirmInvoiceBtn');
+  btn.disabled = true;
+  btn.innerHTML = 'Đang xử lý...';
+  
+  try {
+    const res = await fetch(`${API}/thanh-toan`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        hoaDonId: activeInvoiceId,
+        soTienKhach: activeInvoiceAmount,
+        phuongThuc: 'chuyen_khoan',
+        ghiChu: 'Cư dân tự báo cáo chuyển khoản (Tạm thời)'
+      })
+    });
+    if (res.ok) {
+      alert("Cảm ơn bạn đã thanh toán thành công!");
+      document.getElementById('paymentSection').style.display = 'none';
+      loadData(); // Tải lại hóa đơn
+    } else {
+      const txt = await res.text();
+      alert("Lỗi: " + txt);
+    }
+  } catch (e) {
+    alert("Lỗi kết nối");
+  }
+  
+  btn.disabled = false;
+  btn.innerHTML = 'Tôi đã chuyển khoản thành công';
+  activeInvoiceId = null;
 }
 
 let voluntaryFunds = [];
@@ -357,6 +411,9 @@ function _showVoluntaryPayment(feeId, feeName, amount) {
   const qrUrl = `https://img.vietqr.io/image/vcb-0123456789-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(noidung)}&accountName=BQL CHUNG CU BLUEMOON`;
   document.getElementById('qrCode').src = qrUrl;
   
+  let invBtn = document.getElementById('confirmInvoiceBtn');
+  if (invBtn) invBtn.style.display = 'none';
+
   let confirmBtn = document.getElementById('confirmVoluntaryBtn');
   if (!confirmBtn) {
     confirmBtn = document.createElement('button');

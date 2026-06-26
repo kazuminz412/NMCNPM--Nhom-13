@@ -41,6 +41,11 @@ public class GiaoDichService {
 
         // 4. Cập nhật trạng thái Hóa Đơn -> Đã thanh toán
         hoaDon.setTrangThai("da_thanh_toan");
+        if (hoaDon.getChiTietList() != null) {
+            for (com.bluemoon.model.ChiTietHoaDon ct : hoaDon.getChiTietList()) {
+                ct.setTrangThai("da_dong");
+            }
+        }
         hoaDonRepo.save(hoaDon);
 
         // 5. Tạo mới tờ Biên Lai (Giao Dịch) để lưu lịch sử

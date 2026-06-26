@@ -27,6 +27,7 @@ const AUTH = (() => {
         {
           label: 'Quản lý dân cư',
           items: [
+            { href: 'can-ho.html',      icon: '🏢', label: 'Căn hộ',       key: 'canho' },
             { href: 'ho-dan.html',      icon: '🏠', label: 'Hộ dân',       key: 'hodan' },
             { href: 'nhan-khau.html',   icon: '👥', label: 'Nhân khẩu',    key: 'nhankhau' },
             { href: 'tam-tru.html',     icon: '📝', label: 'Tạm trú / Tạm vắng', key: 'tamtru' },
@@ -163,8 +164,35 @@ const AUTH = (() => {
         return;
     }
 
+    applyAdminFinanceRestrictions(activeKey);
     renderMenu(activeKey);
     renderUser();
+  }
+
+  function applyAdminFinanceRestrictions(activeKey) {
+    if (role !== 'ADMIN') return;
+    const financeKeys = ['danhmucphi', 'hoadon', 'khoanthu', 'thuphi'];
+    if (financeKeys.includes(activeKey)) {
+      const style = document.createElement('style');
+      style.innerHTML = `
+        /* Chặn Admin thêm/sửa/xóa ở trang Tài chính */
+        button[onclick^="openTaoMoiModal"],
+        button[onclick^="submitThuPhi"],
+        button[onclick^="submitTaoMoi"],
+        button[onclick^="deleteFee"],
+        button[onclick^="deleteKhoanThu"],
+        button[onclick^="deletePhi"],
+        button[onclick^="submitForm"],
+        button[onclick^="khoiTaoHoaDon"],
+        button[onclick^="moThanhToan"],
+        button[onclick^="openModal"],
+        .btn-khoi-tao,
+        .abtn.danger {
+          display: none !important;
+        }
+      `;
+      document.head.appendChild(style);
+    }
   }
 
   return { init, protect, logout, role, user, token };
